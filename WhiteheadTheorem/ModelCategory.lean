@@ -1,4 +1,4 @@
-import Mathlib.Topology.CWComplex
+-- import Mathlib.Topology.CWComplex
 import Mathlib.CategoryTheory.Square
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
 import Mathlib.CategoryTheory.MorphismProperty.Factorization
