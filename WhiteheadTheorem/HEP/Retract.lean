@@ -118,7 +118,7 @@ noncomputable def retrToBoundaryJar (n : ℕ) :
     ext x i
     simp [boundaryInclusion, f, h, inclToBoundaryJarBot, inclToBoundaryJarSides, inclToBotFace,
           splitAtLastFinComm, splitAtLastFin]
-  have hep := boundaryInclusion_hasHomotopyExtensionProperty n (⊔I^(n + 1)) f h this
+  have hep := Cube.boundaryInclusion_hasHEP n (⊔I^(n + 1)) f h this
   let H := Classical.choose hep
   have spec : (f = H ∘ fun x ↦ (x, 0)) ∧ h = H ∘ Prod.map (boundaryInclusion n) id :=
     Classical.choose_spec hep

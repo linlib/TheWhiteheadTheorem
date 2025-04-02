@@ -1,7 +1,8 @@
 import WhiteheadTheorem.Shapes.Jar
+import WhiteheadTheorem.Shapes.Maps
 import WhiteheadTheorem.CWComplex
 -- import WhiteheadTheorem.Auxiliary
--- import WhiteheadTheorem.Exponential
+import WhiteheadTheorem.Exponential
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
 import Mathlib.CategoryTheory.LiftingProperties.Limits
 
@@ -19,24 +20,12 @@ def HasHomotopyExtensionProperty {A X : Type u} [TopologicalSpace A] [Topologica
   ∀ (f : C(X, Y)) (h : C(A × I, Y)), f ∘ i = h ∘ (·, 0) →
   ∃ H : C(X × I, Y), f = H ∘ (·, 0) ∧ h = H ∘ Prod.map i id
 
-theorem TopCat.diskBoundaryInclusion_hasHomotopyExtensionProperty
+theorem TopCat.diskBoundaryInclusion_hasHEP
     (n : ℕ) (Y : Type u) [TopologicalSpace Y] :
     HasHomotopyExtensionProperty (diskBoundaryInclusion.{u} n).hom Y :=
   fun f H hf ↦ ⟨HEP.Jar.homotopyExtension n f H hf,
     HEP.Jar.homotopyExtension_bottom_commutes n f H hf,
     HEP.Jar.homotopyExtension_wall_commutes n f H hf⟩
-
-/-- the inclusion map a ↦ ⟨a, 0⟩ -/
-abbrev TopCat.inclZero (A : TopCat.{u}) : A ⟶ TopCat.of (A × I) := ofHom
-  { toFun a := ⟨a, 0⟩
-    continuous_toFun := continuous_id.prod_mk continuous_const }
-
-/-- Given a path, return its starting point (value at 0).
-The continuity of this function, through typeclass resolution,
-implicitly relies on the fact that `I` is locally compact.-/
-abbrev TopCat.pathStart (Y : TopCat.{u}) : TopCat.of C(I, Y) ⟶ Y := ofHom
-  { toFun f := f 0
-    continuous_toFun := Continuous.eval continuous_id continuous_const }
 
 /--
 The map `i : A ⟶ X` is said to have
@@ -197,7 +186,7 @@ theorem HasCurriedHEP.iff_hasHomotopyExtensionProperty {A X : TopCat.{u}}
 instance TopCat.diskBoundaryInclusion_hasCurriedHEP (n : ℕ) (Y : TopCat.{u}) :
     HasCurriedHEP (diskBoundaryInclusion.{u} n) Y :=
   HasCurriedHEP.iff_hasHomotopyExtensionProperty (diskBoundaryInclusion.{u} n) Y |>.mpr <|
-    diskBoundaryInclusion_hasHomotopyExtensionProperty n Y
+    TopCat.diskBoundaryInclusion_hasHEP n Y
 
 /--
 If
@@ -226,6 +215,12 @@ section Cofibration
 class IsCofibration {A X : TopCat.{u}} (i : A ⟶ X) : Prop where
   hasCurriedHEP : ∀ (Y : TopCat.{u}), HasCurriedHEP i Y
 
+theorem IsCofibration.iff_hasHomotopyExtensionProperty
+    {A X : TopCat.{u}} (i : A ⟶ X) :
+    IsCofibration i ↔ ∀ (Y : TopCat.{u}), HasHomotopyExtensionProperty i.hom Y :=
+  ⟨fun h Y ↦ HasCurriedHEP.iff_hasHomotopyExtensionProperty i Y |>.mp (h.hasCurriedHEP Y),
+    fun h ↦ ⟨fun Y ↦ HasCurriedHEP.iff_hasHomotopyExtensionProperty i Y |>.mpr (h Y)⟩ ⟩
+
 instance {A X : TopCat.{u}} (i : A ⟶ X) [IsCofibration i] (Y : TopCat.{u}) :
   HasCurriedHEP i Y := IsCofibration.hasCurriedHEP Y
 
@@ -253,26 +248,85 @@ lemma CategoryTheory.IsPushout.isCofibration {A B X Y : TopCat.{u}}
     (po : IsPushout f i j F) (cof : IsCofibration i) : IsCofibration j :=
   ⟨fun _ ↦ po.hasCurriedHEP⟩
 
+
+/--
+```
+                  curriedArgSwap
+C(I, C(I, Y)) --------------------> C(I, C(I, Y))
+     |                  ≃                |
+     |                                   |
+(exp' I).map Y.pathStart      (TopCat.of C(I, Y)).pathStart
+     |                                   |
+     v                                   v
+  C(I, Y)  =========================  C(I, Y)
+```
+-/
+lemma exp_pathStart_eq_curriedArgSwap_pathStart {Y : TopCat.{u}} :
+    (exp' I).map Y.pathStart =
+    TopCat.ofHom ContinuousMap.curriedArgSwap ≫ (TopCat.of C(I, Y)).pathStart :=
+  rfl
+
+/-- If `A ⟶ X` is a cofibration, then `TopCat.of (A × I) ⟶ TopCat.of (X × I)` is a cofibration.
+```
+A × I --------> C(I, Y)
+  |               |
+i × id       Y.pathStart
+  |               |
+  v               v
+X × I ----------> Y
+```
+```
+A  ---f----> C(I, C(I, Y)) ----curriedArgSwap---> C(I, C(I, Y))
+|               |                                     |
+i       (exp' I).map Y.pathStart      (TopCat.of C(I, Y)).pathStart
+|               |                                     |
+v               v                                     v
+X ----g----> C(I, Y)  ===========================  C(I, Y)
+```
+related: https://math.stackexchange.com/questions/381527/the-product-of-a-cofibration-with-an-identity-map-is-a-cofibration
+-/
+instance IsCofibration.prod_unitInterval {A X : TopCat.{u}}
+    (i : A ⟶ X) [cof : IsCofibration i] :
+    IsCofibration <| TopCat.ofHom <| i.hom.prodMap (ContinuousMap.id I) := by
+  change IsCofibration (topBinaryProductRight' I |>.map i)
+  constructor -- IsCofibration.hasCurriedHEP
+  intro Y
+  constructor -- HasCurriedHEP.hasLift
+  apply (Adjunction.hasLiftingProperty_iff (topBinaryProductRightAdjunctionExp' I) i _).mpr
+  constructor -- HasLiftingProperty.sq_hasLift
+  intro f g sq
+  have bigSq : CommSq (f ≫ TopCat.ofHom ContinuousMap.curriedArgSwap)
+      i (TopCat.of C(I, Y)).pathStart g :=
+    ⟨by rw [Category.assoc, ← exp_pathStart_eq_curriedArgSwap_pathStart, sq.w]⟩
+  let lift := cof.hasCurriedHEP (TopCat.of C(I, Y)) |>.hasLift |>.sq_hasLift bigSq
+    |>.exists_lift |>.some
+  refine ⟨Nonempty.intro ⟨lift.l ≫ TopCat.ofHom ContinuousMap.curriedArgSwap, ?_, ?_⟩⟩
+  · rw [← Category.assoc, lift.fac_left, Category.assoc]
+    rfl
+  · nth_rw 2 [← lift.fac_right]
+    rw [Category.assoc, exp_pathStart_eq_curriedArgSwap_pathStart]
+    rfl
+
 end Cofibration
 
 
-namespace RelativeCWComplex
+namespace RelCWComplex
 
 lemma HasLiftingProperty.of_comp_iso {C : Type*} [Category C] {A B B' X Y : C}
     (i : A ⟶ B) (p : X ⟶ Y) (iso : B ≅ B')
     (h : HasLiftingProperty i p) : HasLiftingProperty (i ≫ iso.hom) p :=
   HasLiftingProperty.of_comp_left i iso.hom p
 
-instance skInclusionToNextSk_isCofibration (X : RelativeCWComplex.{u}) (n : ℕ) :
+instance skInclusionToNextSk_isCofibration (X : RelCWComplex) (n : ℕ) :
     IsCofibration (X.skInclusionToNextSk n) := by
   refine @IsCofibration.of_comp_left _ _ _ _ _ ?_ (by infer_instance) -- iso is cofibration
   apply (X.attachCells n).pushout_isPushout.isCofibration
   infer_instance -- sigma map is cofibration
 
 theorem skInclusion_isCofibration
-    (X : RelativeCWComplex.{u}) : IsCofibration (X.skInclusion 0) := by
+    (X : RelCWComplex) : IsCofibration (X.skInclusion 0) := by
   unfold skInclusion
   infer_instance -- inclusion into a sequential colimit is cofibration
                  -- (by `IsCofibration.of_colimit_ofSequence`)
 
-end RelativeCWComplex
+end RelCWComplex

@@ -200,7 +200,7 @@ in `(I^ Fin (n + 1))`, due to `Cube.insertAt`). -/
 def inclToTopFace {n : ℕ} : C(I^ Fin n, I^ Fin (n + 1)) where
   toFun y := splitAtLastFin.symm ⟨1, y⟩
   continuous_toFun := splitAtLastFin.symm.continuous.comp <|
-    Continuous.prod_mk continuous_const continuous_id
+    Continuous.prodMk continuous_const continuous_id
 
 /-- (y, 1) is in the `boundary`. -/
 lemma inclToTopFace.mem_boundary {n : ℕ} (y : I^ Fin n) : inclToTopFace y ∈ ∂I^(n + 1) := by
@@ -230,7 +230,7 @@ lemma splitAtLastFin_inclToTopFace_eq {n : ℕ} {y : I^ Fin n} :
 def inclToBotFace {n : ℕ} : C(I^ Fin n, I^ Fin (n + 1)) where
   toFun y := Cube.insertAt (n : Fin (n + 1)) ⟨0, Cube.homeoNeqLastFin y⟩
   continuous_toFun := (Cube.insertAt _).continuous.comp <|
-    Continuous.prod_mk continuous_const Cube.homeoNeqLastFin.continuous
+    Continuous.prodMk continuous_const Cube.homeoNeqLastFin.continuous
 
 /-- (y, 0) is in the `boundary`. -/
 lemma inclToBotFace.mem_boundary {n : ℕ} (y : I^ Fin n) : inclToBotFace y ∈ ∂I^(n + 1) := by

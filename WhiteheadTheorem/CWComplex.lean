@@ -25,7 +25,7 @@ open CategoryTheory TopCat
 
 -- universe u
 
-namespace RelativeCWComplex
+namespace RelCWComplex
 
 /-- A type witnessing that `X'` is obtained from `X` by attaching generalized cells `f : S ⟶ D` -/
 structure AttachGeneralizedCells.{u} {S D : TopCat.{u}} (f : S ⟶ D) (X X' : TopCat.{u}) where
@@ -39,25 +39,27 @@ structure AttachGeneralizedCells.{u} {S D : TopCat.{u}} (f : S ⟶ D) (X X' : To
 /-- A type witnessing that `X'` is obtained from `X` by attaching `(n + 1)`-disks -/
 abbrev AttachCells.{u} (n : ℕ) := AttachGeneralizedCells.{u} (diskBoundaryInclusion n)
 
-end RelativeCWComplex
+end RelCWComplex
+
 
 /-- A relative CW-complex consists of an expanding sequence of subspaces `sk i` (called the
 $(i-1)$-skeleton) for `i ≥ 0`, where `sk 0` (i.e., the $(-1)$-skeleton) is an arbitrary topological
 space, and each `sk (n + 1)` (i.e., the `n`-skeleton) is obtained from `sk n` (i.e., the
 $(n-1)$-skeleton) by attaching `n`-disks. -/
-structure RelativeCWComplex where
+structure RelCWComplex where
   /-- The skeletons. Note: `sk i` is usually called the $(i-1)$-skeleton in the math literature. -/
   sk : ℕ → TopCat.{u}
   /-- Each `sk (n + 1)` (i.e., the $n$-skeleton) is obtained from `sk n`
   (i.e., the $(n-1)$-skeleton) by attaching `n`-disks. -/
-  attachCells (n : ℕ) : RelativeCWComplex.AttachCells n (sk n) (sk (n + 1))
+  attachCells (n : ℕ) : RelCWComplex.AttachCells n (sk n) (sk (n + 1))
 
 /-- A CW-complex is a relative CW-complex whose `sk 0` (i.e., $(-1)$-skeleton) is empty. -/
-structure CWComplex.{u} extends RelativeCWComplex.{u} where
+structure CWComplex.{u} extends RelCWComplex.{u} where
   /-- `sk 0` (i.e., the $(-1)$-skeleton) is empty. -/
   isEmpty_sk_zero : IsEmpty (sk 0)
 
-namespace RelativeCWComplex
+
+namespace RelCWComplex
 
 noncomputable section Topology
 
@@ -102,7 +104,7 @@ def AttachCells.pushout_isPushout (att : AttachCells n X X') :
 
 /-- The inclusion map from `sk n` (i.e., the $(n-1)$-skeleton) to `sk (n + 1)` (i.e., the
 $n$-skeleton) of a relative CW-complex -/
-def skInclusionToNextSk (X : RelativeCWComplex.{u}) (n : ℕ) : X.sk n ⟶ X.sk (n + 1) :=
+def skInclusionToNextSk (X : RelCWComplex) (n : ℕ) : X.sk n ⟶ X.sk (n + 1) :=
   (X.attachCells n).inclusion
 
 -- def sigmaAttachMaps (X : RelativeCWComplex.{u}) (n : ℕ) := (X.attachCells n).sigmaAttachMaps
@@ -111,16 +113,19 @@ def skInclusionToNextSk (X : RelativeCWComplex.{u}) (n : ℕ) : X.sk n ⟶ X.sk 
 --   (X.attachCells n).sigmaDiskBoundaryInclusion
 
 /-- The topology on a relative CW-complex -/
-def toTopCat (X : RelativeCWComplex.{u}) : TopCat.{u} :=
+def toTopCat (X : RelCWComplex) : TopCat.{u} :=
   Limits.colimit (Functor.ofSequence X.skInclusionToNextSk)
 
-instance : Coe RelativeCWComplex TopCat where
+instance : Coe RelCWComplex TopCat where
   coe X := toTopCat X
 
+instance : Coe CWComplex TopCat where
+  coe X := toTopCat X.toRelCWComplex
+
 /-- The inclusion map from `sk n` (i.e., the $(n-1)$-skeleton of `X`) to `X` -/
-def skInclusion (X : RelativeCWComplex.{u}) (n : ℕ) : X.sk n ⟶ X :=
+def skInclusion (X : RelCWComplex) (n : ℕ) : X.sk n ⟶ X :=
   Limits.colimit.ι (Functor.ofSequence _) n
 
 end Topology
 
-end RelativeCWComplex
+end RelCWComplex

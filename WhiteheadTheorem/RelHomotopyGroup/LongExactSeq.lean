@@ -58,7 +58,7 @@ theorem ker_jStar_subset_im_iStar (f : π_ n X a) :
 
 /-- `Ker ∂ ⊇ Im j*` in
 `⋯ πₙ₊₁(X, a) ---j*ₙ---> πₙ₊₁(X, A, a) ---∂ₙ---> πₙ(A, a) ⋯` -/
-theorem bd_comp_jStar_eq_zero (f : π﹍ (n+1) X A a) :
+theorem ker_bd_supset_im_jStar (f : π﹍ (n+1) X A a) :
     (∃ g, jStar (n+1) X A a g = f) → bd n X A a f = default := fun ⟨g, hgf⟩ ↦ by
   change _ = ⟦GenLoop.const⟧
   let g' := Quotient.out g
@@ -109,10 +109,10 @@ noncomputable def ker_bd_subset_im_jStar.g''
       simp only [one_div, Function.comp_apply, coe_mk, dite_eq_ite]
       apply Continuous.if_le
       · refine f'.val.continuous.comp <| Cube.splitAtLastFin.symm.continuous.comp ?_
-        refine Continuous.prod_mk (Continuous.comp continuous_projIcc ?_) continuous_snd
+        refine Continuous.prodMk (Continuous.comp continuous_projIcc ?_) continuous_snd
         exact Continuous.mul continuous_const <| Continuous.subtype_val continuous_fst
       · refine Continuous.subtype_val <| H.continuous.comp ?_
-        refine Continuous.prod_mk (Continuous.comp continuous_projIcc ?_) continuous_snd
+        refine Continuous.prodMk (Continuous.comp continuous_projIcc ?_) continuous_snd
         refine Continuous.sub ?_ continuous_const
         exact Continuous.mul continuous_const <| Continuous.subtype_val continuous_fst
       · exact Continuous.subtype_val continuous_fst
@@ -184,13 +184,13 @@ noncomputable def ker_bd_subset_im_jStar.G''
       simp only [Function.comp_apply, coe_mk, dite_eq_ite]
       apply Continuous.if_le
       · refine f'.val.continuous.comp <| Cube.splitAtLastFin.symm.continuous.comp ?_
-        refine Continuous.prod_mk (Continuous.comp continuous_projIcc ?_)
+        refine Continuous.prodMk (Continuous.comp continuous_projIcc ?_)
           (Continuous.snd continuous_snd)
         refine Continuous.mul ?_ (Continuous.subtype_val <| Continuous.fst continuous_snd)
         refine Continuous.div continuous_const (by fun_prop) fun x ↦ ?_
         linarith only [x.1.property.1]
       · refine Continuous.subtype_val <| H.continuous.comp ?_
-        refine Continuous.prod_mk (Continuous.comp continuous_projIcc ?_)
+        refine Continuous.prodMk (Continuous.comp continuous_projIcc ?_)
           (Continuous.snd continuous_snd)
         fun_prop
       · exact Continuous.subtype_val <| Continuous.fst continuous_snd

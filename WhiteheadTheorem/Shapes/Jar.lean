@@ -53,7 +53,7 @@ noncomputable def midProjToFun (n : ℕ) : mid.{u} n → disk.{u} n := fun p ↦
 lemma continuous_midProjToFun (n : ℕ) : Continuous (midProjToFun.{u} n) := by
   refine continuous_uliftUp.comp ?_
   refine Continuous.subtype_mk ?_ _
-  exact continuous_smul.comp <| Continuous.prod_mk
+  exact continuous_smul.comp <| Continuous.prodMk
     (continuous_const.div ((continuous_sub_left _).comp <| continuous_subtype_val.comp <|
       continuous_snd.comp <| continuous_subtype_val) fun ⟨⟨ _, ⟨y, _, _⟩ ⟩, _⟩ ↦ by
         dsimp only [Function.comp_apply, ne_eq]; linarith)
@@ -81,7 +81,7 @@ noncomputable def rimProjFstToFun (n : ℕ) : rim.{u} n → diskBoundary.{u} n :
 lemma continuous_rimProjFstToFun (n : ℕ) : Continuous (rimProjFstToFun n) := by
   refine continuous_uliftUp.comp ?_
   refine Continuous.subtype_mk ?_ _
-  exact continuous_smul.comp <| Continuous.prod_mk
+  exact continuous_smul.comp <| Continuous.prodMk
     (Continuous.div continuous_const (continuous_norm.comp <| continuous_subtype_val.comp <|
       continuous_uliftDown.comp <| continuous_fst.comp <| continuous_subtype_val) <|
         rim_fst_ne_zero n)
