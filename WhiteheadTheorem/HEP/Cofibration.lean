@@ -34,7 +34,7 @@ if the commutative square
 ```
   A ---h---> C(I, Y)
   |          |
-  i      pathStart
+  i        eval₀
   |          |
   v          v
   X ---f---> Y
@@ -42,18 +42,18 @@ if the commutative square
 has a lift H : X -> C(I, Y).
 -/
 class HasCurriedHEP {A X : TopCat.{u}} (i : A ⟶ X) (Y : TopCat.{u}) : Prop where
-  hasLift : HasLiftingProperty i (pathStart Y)
+  hasLift : HasLiftingProperty i (PathSpace.eval₀ Y)
 
 instance {A X : TopCat.{u}} (i : A ⟶ X) (Y : TopCat.{u}) [HasCurriedHEP i Y] :
-  HasLiftingProperty i (pathStart Y) := HasCurriedHEP.hasLift
+  HasLiftingProperty i (PathSpace.eval₀ Y) := HasCurriedHEP.hasLift
 
 instance HasCurriedHEP.of_iso {A X : TopCat.{u}} (i : A ⟶ X) [IsIso i] {Y : TopCat.{u}} :
     HasCurriedHEP i Y :=
-  ⟨by infer_instance⟩ --⟨HasLiftingProperty.of_left_iso i (pathStart Y)⟩
+  ⟨by infer_instance⟩ --⟨HasLiftingProperty.of_left_iso i (PathSpace.eval₀ Y)⟩
 
 instance HasCurriedHEP.of_comp_left {A X X' : TopCat.{u}} (i : A ⟶ X) (i' : X ⟶ X')
     {Y : TopCat.{u}} [HasCurriedHEP i Y] [HasCurriedHEP i' Y] : HasCurriedHEP (i ≫ i') Y :=
-  ⟨by infer_instance⟩ -- ⟨HasLiftingProperty.of_comp_left i i' (pathStart p)⟩
+  ⟨by infer_instance⟩ -- ⟨HasLiftingProperty.of_comp_left i i' (PathSpace.eval₀ p)⟩
 
 instance HasCurriedHEP.of_sigma_map {J : Type u} {A B : J → TopCat.{u}}
     (f : (j : J) → A j ⟶ B j) {Z : TopCat.{u}}
@@ -163,7 +163,7 @@ theorem HasCurriedHEP.iff_hasHomotopyExtensionProperty {A X : TopCat.{u}}
     HasCurriedHEP i Y ↔ HasHomotopyExtensionProperty i.hom Y := by
   constructor
   · intro lhep f h fac
-    have sq : CommSq (ofHom h.curry) i (pathStart Y) (ofHom f) := ⟨by
+    have sq : CommSq (ofHom h.curry) i (PathSpace.eval₀ Y) (ofHom f) := ⟨by
       ext a; simp; change _ = (f ∘ i.hom) a; rw [fac]; simp ⟩
     obtain ⟨H, H1, H2⟩ := (lhep.hasLift.sq_hasLift sq).exists_lift.some
     apply_fun DFunLike.coe ∘ Hom.hom at H1 H2
@@ -255,22 +255,22 @@ lemma CategoryTheory.IsPushout.isCofibration {A B X Y : TopCat.{u}}
 C(I, C(I, Y)) --------------------> C(I, C(I, Y))
      |                  ≃                |
      |                                   |
-(exp' I).map Y.pathStart      (TopCat.of C(I, Y)).pathStart
+(exp' I).map (PathSpace.eval₀ Y)    PathSpace.eval₀ (TopCat.of C(I, Y))
      |                                   |
      v                                   v
   C(I, Y)  =========================  C(I, Y)
 ```
 -/
-lemma exp_pathStart_eq_curriedArgSwap_pathStart {Y : TopCat.{u}} :
-    (exp' I).map Y.pathStart =
-    TopCat.ofHom ContinuousMap.curriedArgSwap ≫ (TopCat.of C(I, Y)).pathStart :=
+lemma exp_PathSpace.eval₀_eq_curriedArgSwap_PathSpace.eval₀ {Y : TopCat.{u}} :
+    (exp' I).map (PathSpace.eval₀ Y) =
+    TopCat.ofHom ContinuousMap.curriedArgSwap ≫ PathSpace.eval₀ (TopCat.of C(I, Y)) :=
   rfl
 
 /-- If `A ⟶ X` is a cofibration, then `TopCat.of (A × I) ⟶ TopCat.of (X × I)` is a cofibration.
 ```
 A × I --------> C(I, Y)
   |               |
-i × id       Y.pathStart
+i × id       (PathSpace.eval₀ Y)
   |               |
   v               v
 X × I ----------> Y
@@ -278,7 +278,7 @@ X × I ----------> Y
 ```
 A  ---f----> C(I, C(I, Y)) ----curriedArgSwap---> C(I, C(I, Y))
 |               |                                     |
-i       (exp' I).map Y.pathStart      (TopCat.of C(I, Y)).pathStart
+i       (exp' I).map (PathSpace.eval₀ Y)      PathSpace.eval₀ (TopCat.of C(I, Y))
 |               |                                     |
 v               v                                     v
 X ----g----> C(I, Y)  ===========================  C(I, Y)
@@ -296,15 +296,15 @@ instance IsCofibration.prod_unitInterval {A X : TopCat.{u}}
   constructor -- HasLiftingProperty.sq_hasLift
   intro f g sq
   have bigSq : CommSq (f ≫ TopCat.ofHom ContinuousMap.curriedArgSwap)
-      i (TopCat.of C(I, Y)).pathStart g :=
-    ⟨by rw [Category.assoc, ← exp_pathStart_eq_curriedArgSwap_pathStart, sq.w]⟩
+      i (PathSpace.eval₀ <| TopCat.of C(I, Y)) g :=
+    ⟨by rw [Category.assoc, ← exp_PathSpace.eval₀_eq_curriedArgSwap_PathSpace.eval₀, sq.w]⟩
   let lift := cof.hasCurriedHEP (TopCat.of C(I, Y)) |>.hasLift |>.sq_hasLift bigSq
     |>.exists_lift |>.some
   refine ⟨Nonempty.intro ⟨lift.l ≫ TopCat.ofHom ContinuousMap.curriedArgSwap, ?_, ?_⟩⟩
   · rw [← Category.assoc, lift.fac_left, Category.assoc]
     rfl
   · nth_rw 2 [← lift.fac_right]
-    rw [Category.assoc, exp_pathStart_eq_curriedArgSwap_pathStart]
+    rw [Category.assoc, exp_PathSpace.eval₀_eq_curriedArgSwap_PathSpace.eval₀]
     rfl
 
 end Cofibration

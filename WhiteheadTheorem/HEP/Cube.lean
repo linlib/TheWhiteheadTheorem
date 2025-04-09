@@ -3,8 +3,8 @@ import WhiteheadTheorem.Shapes.DiskHomeoCube
 import WhiteheadTheorem.HEP.Cofibration
 
 /-!
-In this file we derive the homotopy extension property (HEP)
-of the pair $(I^n, ∂I^n)$ from the HEP of $(D^n, ∂D^n)$.
+In this file, the homotopy extension property (HEP) of the pair $(I^n, ∂I^n)$
+is derived from the HEP of $(D^n, ∂D^n)$.
 -/
 
 open CategoryTheory TopCat
@@ -32,7 +32,7 @@ instance Cube.boundaryInclusion_isCofibration (n : ℕ) :
     let ι := TopCat.ofHom (Cube.boundaryInclusion n)
     ⟨{  sq_hasLift {h f} sq := by
           have hepd : HasCurriedHEP (diskBoundaryInclusion n) Y := by infer_instance
-          have bigSq : CommSq (φ ≫ h) i (pathStart Y) (Φ ≫ f) := ⟨by
+          have bigSq : CommSq (φ ≫ h) i (PathSpace.eval₀ Y) (Φ ≫ f) := ⟨by
             simp only [Arrow.mk_left, Category.assoc, Arrow.mk_right]
             rw [sq.w, ← Category.assoc, ← Category.assoc]
             congr 1 ⟩
@@ -57,12 +57,12 @@ instance Cube.boundaryInclusion_isCofibration (n : ℕ) :
             change i ≫ l.l = _
             exact l.fac_left
           · simp only [Category.assoc]
-            suffices Φ ≫ Φinv ≫ l.l ≫ Y.pathStart = Φ ≫ f by
-              have : (Φinv ≫ Φ) ≫ Φinv ≫ l.l ≫ Y.pathStart = (Φinv ≫ Φ) ≫ f := by
+            suffices Φ ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = Φ ≫ f by
+              have : (Φinv ≫ Φ) ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = (Φinv ≫ Φ) ≫ f := by
                 simp only [Category.assoc]; rw [this]
               rwa [Arrow.inv_hom_id_right, Category.id_comp, Category.id_comp] at this
-            calc Φ ≫ Φinv ≫ l.l ≫ Y.pathStart = (Φ ≫ Φinv) ≫ l.l ≫ Y.pathStart := rfl
-                _ = l.l ≫ Y.pathStart := by rw [Arrow.hom_inv_id_right]; rfl
+            calc Φ ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = (Φ ≫ Φinv) ≫ l.l ≫ PathSpace.eval₀ Y := rfl
+                _ = l.l ≫ PathSpace.eval₀ Y := by rw [Arrow.hom_inv_id_right]; rfl
                 _ = Φ ≫ f := l.fac_right }⟩
 
 instance Cube.boundaryInclusion_prod_unitInterval_isCofibration (n : ℕ) :
@@ -102,7 +102,7 @@ instance cubeBoundaryInclusion_isCofibration (n : ℕ) :
     let ι := cubeBoundaryInclusion.{u} n
     ⟨{  sq_hasLift {h f} sq := by
           have hepd : HasCurriedHEP (diskBoundaryInclusion n) Y := by infer_instance
-          have bigSq : CommSq (φ ≫ h) i (pathStart Y) (Φ ≫ f) := ⟨by
+          have bigSq : CommSq (φ ≫ h) i (PathSpace.eval₀ Y) (Φ ≫ f) := ⟨by
             simp only [Arrow.mk_left, Category.assoc, Arrow.mk_right]
             rw [sq.w, ← Category.assoc, ← Category.assoc]
             congr 1 ⟩
@@ -121,12 +121,12 @@ instance cubeBoundaryInclusion_isCofibration (n : ℕ) :
             change i ≫ l.l = _
             exact l.fac_left
           · simp only [Category.assoc]
-            suffices Φ ≫ Φinv ≫ l.l ≫ Y.pathStart = Φ ≫ f by
-              have : (Φinv ≫ Φ) ≫ Φinv ≫ l.l ≫ Y.pathStart = (Φinv ≫ Φ) ≫ f := by
+            suffices Φ ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = Φ ≫ f by
+              have : (Φinv ≫ Φ) ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = (Φinv ≫ Φ) ≫ f := by
                 simp only [Category.assoc]; rw [this]
               rwa [Arrow.inv_hom_id_right, Category.id_comp, Category.id_comp] at this
-            calc Φ ≫ Φinv ≫ l.l ≫ Y.pathStart = (Φ ≫ Φinv) ≫ l.l ≫ Y.pathStart := rfl
-                _ = l.l ≫ Y.pathStart := by rw [Arrow.hom_inv_id_right]; rfl
+            calc Φ ≫ Φinv ≫ l.l ≫ PathSpace.eval₀ Y = (Φ ≫ Φinv) ≫ l.l ≫ PathSpace.eval₀ Y := rfl
+                _ = l.l ≫ PathSpace.eval₀ Y := by rw [Arrow.hom_inv_id_right]; rfl
                 _ = Φ ≫ f := l.fac_right }⟩
 
 instance cubeBoundaryInclusion_prod_unitInterval_isCofibration (n : ℕ) :

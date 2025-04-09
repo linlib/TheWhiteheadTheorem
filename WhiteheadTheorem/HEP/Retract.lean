@@ -1,6 +1,7 @@
 import WhiteheadTheorem.HEP.Cube
 import WhiteheadTheorem.Shapes.Cube
 import Mathlib.Analysis.Convex.Basic
+import Mathlib.Topology.Homotopy.Contractible
 
 
 open TopCat
@@ -23,36 +24,32 @@ structure StrongDeformRetr (X : Type*) [TopologicalSpace X] (A : Set X) where
 
 namespace Cube
 
-lemma splitAtLastFinComm_inclToBotFace_eq {n : ℕ} :   -- (I^ Fin n) ↦ (I^ Fin n) × I
-    splitAtLastFinComm ∘ inclToBotFace = fun x : (I^ Fin n) ↦ (x, 0) := by
+lemma splitAtLastComm_inclToBot_eq {n : ℕ} :   -- (I^ Fin n) ↦ (I^ Fin n) × I
+    splitAtLastComm ∘ inclToBot = fun x : (I^ Fin n) ↦ (x, 0) := by
   ext x i
-  repeat {simp [splitAtLastFinComm, splitAtLastFin, inclToBotFace]}
+  repeat {simp [splitAtLastComm, splitAtLast, inclToBot]}
 
-/-- `(y₀, y₁, …, yₙ₋₁, yₙ) ↦ (y₀, y₁, …, yₙ₋₁)` -/
-def discardLastFin {n : ℕ} : (I^ Fin (n + 1)) → (I^ Fin n) :=
-  fun y ↦ fun i ↦ y ⟨i.val, i.prop.trans (by omega : n < n + 1)⟩
-
-lemma inclToBotFace_discardLastFin_mem_boundary {n : ℕ} (y : I^ Fin (n + 1)) :
-    inclToBotFace (discardLastFin y) ∈ ∂I^(n+1) := by
-  use Fin.last n; left; simp [inclToBotFace]
+lemma inclToBot_discardLast_mem_boundary {n : ℕ} (y : I^ Fin (n + 1)) :
+    inclToBot (discardLast y) ∈ ∂I^(n+1) := by
+  use Fin.last n; left; simp [inclToBot]
 
 /-- `(y₀, y₁, …, yₙ₋₁, yₙ) ↦ (y₀, y₁, …, yₙ₋₁) ↦ (y₀, y₁, …, yₙ₋₁, 0)` does nothing if `yₙ = 0`. -/
-lemma inclToBotFace_discardLastFin_eq_of {n : ℕ} (y : I^ Fin (n + 1))
-    (hz : y (Fin.last n) = 0) : inclToBotFace (discardLastFin y) = y := by
-  ext i; simp [discardLastFin, inclToBotFace]
-  split_ifs with hi; rw [hi, hz]; simp [homeoNeqLastFin, discardLastFin]
+lemma inclToBot_discardLast_eq_of {n : ℕ} (y : I^ Fin (n + 1))
+    (hz : y (Fin.last n) = 0) : inclToBot (discardLast y) = y := by
+  ext i; simp [discardLast, inclToBot]
+  split_ifs with hi; rw [hi, hz]; simp [homeoNeqLast, discardLast]
 
-lemma inclToBoundaryJarBot_discardLastFin_eq_of {n : ℕ} (y : I^ Fin (n + 1))
-    (hz : y (Fin.last n) = 0) : inclToBoundaryJarBot (discardLastFin y) = y := by
-  ext i; simp [discardLastFin, inclToBoundaryJarBot, inclToBotFace]
-  split_ifs with hi; rw [hi, hz]; simp [homeoNeqLastFin, discardLastFin]
+lemma inclToBoundaryJarBot_discardLast_eq_of {n : ℕ} (y : I^ Fin (n + 1))
+    (hz : y (Fin.last n) = 0) : inclToBoundaryJarBot (discardLast y) = y := by
+  ext i; simp [discardLast, inclToBoundaryJarBot, inclToBot]
+  split_ifs with hi; rw [hi, hz]; simp [homeoNeqLast, discardLast]
 
 ------------------
 
-lemma splitAtLastFinComm_inclToSides_eq {n : ℕ} :   -- (∂I^n) × I ↦ (I^ Fin n) × I
-    splitAtLastFinComm ∘ inclToSides = Prod.map (boundaryInclusion n) id := by
+lemma splitAtLastComm_inclToSides_eq {n : ℕ} :   -- (∂I^n) × I ↦ (I^ Fin n) × I
+    splitAtLastComm ∘ inclToSides = Prod.map (boundaryInclusion n) id := by
   ext ⟨y, t⟩ i
-  repeat { simp [splitAtLastFinComm, splitAtLastFin, boundaryInclusion,
+  repeat { simp [splitAtLastComm, splitAtLast, boundaryInclusion,
     inclToSides, inclToBoundaryJarSides] }
 
 /-- Project the $(n+1)$-dimensional cube to its boundary `∂I^(n+1)`.
@@ -77,76 +74,77 @@ lemma projToBoundary_eq_of_mem_boundary {n : ℕ} (y : I^ Fin (n + 1))
 (the closure of the complement of the top and bottom faces of the boundary).
 Since `∂I^0 = ∅`, the cube shoule be at least 2-dimensional. -/
 noncomputable def projToSides {n : ℕ} : (I^ Fin (n + 1 + 1)) → (∂I^(n+1)) × I :=
-  (Prod.map projToBoundary id) ∘ splitAtLastFinComm
+  (Prod.map projToBoundary id) ∘ splitAtLastComm
 
 lemma inclToSides_projToSides_eq_of {n : ℕ} (y : I^ Fin (n + 1 + 1))
-    (hs : (splitAtLastFin y).snd ∈ ∂I^(n+1)) :
+    (hs : (splitAtLast y).snd ∈ ∂I^(n+1)) :
     inclToSides (projToSides y) = y := by
   simp [projToSides, Prod.map]
-  rw [splitAtLastFin_snd_eq] at hs
-  have : projToBoundary (splitAtLastFinComm y).1 = ⟨(splitAtLastFinComm y).1, ‹_›⟩ :=
+  rw [splitAtLast_snd_eq] at hs
+  have : projToBoundary (splitAtLastComm y).1 = ⟨(splitAtLastComm y).1, ‹_›⟩ :=
     Subtype.eq_iff.mpr (projToBoundary_eq_of_mem_boundary _ hs)
   rw [this]
   ext i
-  simp [inclToSides, inclToBoundaryJarSides, splitAtLastFinComm, splitAtLastFin]
-  simp [boundaryInclusion, splitAtLastFinComm, splitAtLastFin]
+  simp [inclToSides, inclToBoundaryJarSides, splitAtLastComm, splitAtLast]
+  simp [boundaryInclusion, splitAtLastComm, splitAtLast]
   split_ifs with hi
   rw [hi]; simp only
 
 lemma inclToBoundaryJarSides_projToSides_eq_of {n : ℕ} (y : I^ Fin (n + 1 + 1))
-    (hs : (splitAtLastFin y).snd ∈ ∂I^(n+1)) :
+    (hs : (splitAtLast y).snd ∈ ∂I^(n+1)) :
     inclToBoundaryJarSides (projToSides y) = y := by
   simp [projToSides, Prod.map]
-  rw [splitAtLastFin_snd_eq] at hs
-  have : projToBoundary (splitAtLastFinComm y).1 = ⟨(splitAtLastFinComm y).1, ‹_›⟩ :=
+  rw [splitAtLast_snd_eq] at hs
+  have : projToBoundary (splitAtLastComm y).1 = ⟨(splitAtLastComm y).1, ‹_›⟩ :=
     Subtype.eq_iff.mpr (projToBoundary_eq_of_mem_boundary _ hs)
   rw [this]
   ext i
-  simp [inclToBoundaryJarSides, splitAtLastFinComm, splitAtLastFin]
+  simp [inclToBoundaryJarSides, splitAtLastComm, splitAtLast]
   split_ifs with hi
   · rw [hi]
   · simp [boundaryInclusion]
 
-------------------
 
-/-- A  retraction from `I^n` to `∂I^n`. -/
+section strongDeformRetrToBoundaryJar
+
+/-- A  retraction from `I^n` to `∂I^n`, for `n ≥ 1`. -/
 noncomputable def retrToBoundaryJar (n : ℕ) :
     { r' : C(Fin (n + 1) → I, ⊔I^n + 1) // ∀ y ∈ ⊔I^(n+1), r' y = y } := by
   let f : C(I^ Fin n, ⊔I^(n + 1)) := inclToBoundaryJarBot
   let h : C((∂I^n) × I, ⊔I^(n + 1)) := inclToBoundaryJarSides
   have : f ∘ (boundaryInclusion n) = h ∘ fun x ↦ (x, 0) := by
     ext x i
-    simp [boundaryInclusion, f, h, inclToBoundaryJarBot, inclToBoundaryJarSides, inclToBotFace,
-          splitAtLastFinComm, splitAtLastFin]
+    simp [boundaryInclusion, f, h, inclToBoundaryJarBot, inclToBoundaryJarSides, inclToBot,
+          splitAtLastComm, splitAtLast]
   have hep := Cube.boundaryInclusion_hasHEP n (⊔I^(n + 1)) f h this
   let H := Classical.choose hep
   have spec : (f = H ∘ fun x ↦ (x, 0)) ∧ h = H ∘ Prod.map (boundaryInclusion n) id :=
     Classical.choose_spec hep
-  let r' : C(I^ Fin (n + 1), ⊔I^(n+1)) := H.comp (toContinuousMap splitAtLastFinComm)
+  let r' : C(I^ Fin (n + 1), ⊔I^(n+1)) := H.comp (toContinuousMap splitAtLastComm)
   exact ⟨r', fun y hy ↦ by
     by_cases hbot : y (Fin.last n) = 0
-    · nth_rw 1 [← inclToBotFace_discardLastFin_eq_of y hbot]
-      change (H ∘ splitAtLastFinComm ∘ inclToBotFace) _ = y
-      rw [splitAtLastFinComm_inclToBotFace_eq]
-      rw [← spec.left, inclToBoundaryJarBot_discardLastFin_eq_of y hbot]
+    · nth_rw 1 [← inclToBot_discardLast_eq_of y hbot]
+      change (H ∘ splitAtLastComm ∘ inclToBot) _ = y
+      rw [splitAtLastComm_inclToBot_eq]
+      rw [← spec.left, inclToBoundaryJarBot_discardLast_eq_of y hbot]
     · induction n with
       | zero =>
-          have : (H ∘ splitAtLastFinComm) y = ⟨y, hy⟩ := by
-            rw [unique_boundaryJar_one.uniq ⟨y, hy⟩]
-            rw [unique_boundaryJar_one.uniq ((H ∘ splitAtLastFinComm) y)]
+          have : (H ∘ splitAtLastComm) y = ⟨y, hy⟩ := by
+            rw [uniqueBoundaryJarOne.uniq ⟨y, hy⟩]
+            rw [uniqueBoundaryJarOne.uniq ((H ∘ splitAtLastComm) y)]
           apply_fun Subtype.val at this
           exact this
       | succ n =>
-          obtain hy' | hy' := splitAtLastFin_boundaryJar hy
-          · exfalso; rw [splitAtLastFin_fst_eq] at hy'; exact hbot hy'
+          obtain hy' | hy' := mem_boundaryJar_iff_splitAtLast.mp hy
+          · exfalso; rw [splitAtLast_fst_eq] at hy'; exact hbot hy'
           nth_rw 1 [← inclToSides_projToSides_eq_of y hy']
-          change (H ∘ splitAtLastFinComm ∘ inclToSides) _ = y
-          rw [splitAtLastFinComm_inclToSides_eq]
+          change (H ∘ splitAtLastComm ∘ inclToSides) _ = y
+          rw [splitAtLastComm_inclToSides_eq]
           rw [← spec.right]
           apply inclToBoundaryJarSides_projToSides_eq_of y
           exact hy' ⟩
 
-/-- A strong deformation retraction from `I^n` to `∂I^n`.
+/-- A strong deformation retraction from `I^n` to `∂I^n`, for `n ≥ 1`.
 I'm writing down the formula for each coordinate because:
   - `failed to synthesize ContinuousSMul (↑I) (Fin (n + 1) → ↑I)`
   - Using `Convex` requires going to a subset of ℝ^(n+1) and back
@@ -184,5 +182,137 @@ noncomputable def strongDeformRetrToBoundaryJar (n : ℕ) :
           simp only [unitInterval.coe_symm_eq, smul_eq_mul, ContinuousMap.coe_mk,
             ContinuousMap.id_apply]
           rw [r'_restrict y hy, sub_mul, sub_add_cancel, one_mul] }}
+
+end strongDeformRetrToBoundaryJar
+
+
+section instContractibleSpaceBoundaryJar
+
+open scoped ContinuousMap
+
+example (X Y : Type u) [TopologicalSpace X] [TopologicalSpace Y] (f g : C(X, Y)) (hfg : f = g) :
+    f.Homotopic g :=
+  hfg ▸ ContinuousMap.Homotopic.refl f
+
+/-- Deformation retraction from the cube to its bottom face -/
+def deformRetrToBot {n : ℕ} : C(I × I^ Fin (n + 1), I^ Fin (n + 1)) :=
+  let f₁ : C(I × I^ Fin (n + 1), I × I × I^ Fin n) :=
+    (ContinuousMap.id _).prodMap (toContinuousMap splitAtLast)
+  let f₂ : C(I × I × I^ Fin n, I × I^ Fin n) :=
+    { toFun := fun ⟨t, ⟨s, y⟩⟩ ↦ ⟨s * t, y⟩
+      continuous_toFun := by fun_prop }  -- uses `unitInterval.continuousMul` in `Shapes/Maps.lean`
+  let f₃ : C(I × I^ Fin n, I^ Fin (n + 1)) :=
+    toContinuousMap splitAtLast.symm
+  f₃.comp <| f₂.comp f₁
+
+/-- If `y` is in the bottom face of the cube,
+then `deformRetrToBot ⟨t, y⟩` is in the bottom face for all `t`. -/
+lemma deformRetrToBot_apply_bot {n : ℕ}
+    (t : I) {y : I^ Fin (n + 1)} (hy : y (Fin.last n) = 0) :
+    deformRetrToBot ⟨t, y⟩ (Fin.last n) = 0 := by
+  unfold deformRetrToBot
+  simp only [ContinuousMap.comp_apply, ContinuousMap.prodMap_apply, ContinuousMap.coe_id,
+    ContinuousMap.coe_coe, Prod.map_apply, id_eq, ContinuousMap.coe_mk]
+  unfold splitAtLast
+  simp only [ne_eq, Homeomorph.trans_apply, Homeomorph.funSplitAt_apply, Fin.natCast_eq_last,
+    Homeomorph.coe_prodCongr, Homeomorph.refl_apply, Prod.map_apply, id_eq,
+    Homeomorph.symm_trans_apply, Homeomorph.prodCongr_symm, Homeomorph.refl_symm,
+    Homeomorph.symm_symm, Homeomorph.apply_symm_apply, Homeomorph.funSplitAt_symm_apply,
+    ↓reduceDIte, mul_eq_zero]
+  exact Or.inl hy
+
+/-- If `y` is in the sides
+(the closure of the complement of the top and bottom faces of the boundary) of the cube,
+then `deformRetrToBot ⟨t, y⟩` is in the sides for all `t`. -/
+lemma deformRetrToBot_apply_sides {n : ℕ}
+    (t : I) {y : I^ Fin (n + 1)} (hy : (splitAtLast y).snd ∈ ∂I^n) :
+    (splitAtLast (deformRetrToBot ⟨t, y⟩)).snd ∈ ∂I^n := by
+  unfold deformRetrToBot
+  simpa only [ContinuousMap.comp_apply, ContinuousMap.prodMap_apply, ContinuousMap.coe_id,
+    ContinuousMap.coe_coe, Prod.map_apply, id_eq, ContinuousMap.coe_mk, Homeomorph.apply_symm_apply]
+
+/-- Deformation retraction from `⊔I^(n + 1)` to its bottom face -/
+def boundaryJarDeformRetrToBot {n : ℕ} : C(I × ⊔I^(n + 1), ⊔I^(n + 1)) :=
+  let f₀ : C(I × ⊔I^(n + 1), I × I^ Fin (n + 1)) :=
+    (ContinuousMap.id _).prodMap <| boundaryJarInclusion (n + 1)
+  { toFun ty := ⟨deformRetrToBot (f₀ ty), by
+      obtain ⟨t, ⟨y, hy⟩⟩ := ty
+      -- simp? [f₀, deformRetrToBot]
+      obtain hbot | hsides := mem_boundaryJar_iff_splitAtLast.mp hy
+      · simp only [boundaryJarInclusion, ContinuousMap.prodMap_apply, ContinuousMap.coe_id,
+          ContinuousMap.coe_mk, Prod.map_apply, id_eq, f₀]
+        rw [splitAtLast_fst_eq] at hbot
+        have := deformRetrToBot_apply_bot t hbot
+        apply mem_boundaryJar_of_exists_eq_zero
+        use Fin.last n
+      · simp only [boundaryJarInclusion, ContinuousMap.prodMap_apply, ContinuousMap.coe_id,
+          ContinuousMap.coe_mk, Prod.map_apply, id_eq, f₀]
+        have := deformRetrToBot_apply_sides t hsides
+        exact mem_boundaryJar_iff_splitAtLast.mpr <| Or.inr this ⟩
+    continuous_toFun := by fun_prop }
+
+def hequivBoundaryJar {n : ℕ} : (I^ Fin n) ≃ₕ ⊔I^(n + 1) where
+  toFun := inclToBoundaryJarBot
+  invFun := discardLast.comp (boundaryJarInclusion (n + 1))
+  left_inv := by
+    apply ContinuousMap.Homotopic.of_eq
+    ext y i
+    simp only [discardLast, boundaryJarInclusion, inclToBoundaryJarBot, inclToBot, ne_eq,
+      ContinuousMap.coe_mk, ContinuousMap.comp_assoc, ContinuousMap.comp_apply,
+      Homeomorph.funSplitAt_symm_apply, Fin.natCast_eq_last, ContinuousMap.id_apply]
+    split
+    · rename_i hi
+      change i.castSucc = _ at hi
+      exfalso
+      exact (Fin.castSucc_ne_last i) hi
+    · simp only [homeoNeqLast, ne_eq, Fin.coe_eq_castSucc, Homeomorph.piCongr_apply,
+        Equiv.coe_fn_symm_mk, Fin.eta, Homeomorph.refl_apply, id_eq]
+  right_inv := Nonempty.intro <|
+    { toContinuousMap := boundaryJarDeformRetrToBot
+      map_zero_left y := by
+        unfold boundaryJarDeformRetrToBot inclToBoundaryJarBot discardLast boundaryJarInclusion
+        simp only [ContinuousMap.prodMap_apply, ContinuousMap.coe_id, ContinuousMap.coe_mk,
+          Prod.map_apply, id_eq, ContinuousMap.comp_apply, Subtype.mk.injEq]
+        unfold deformRetrToBot inclToBot
+        simp only [ContinuousMap.comp_apply, ContinuousMap.prodMap_apply, ContinuousMap.coe_id,
+          ContinuousMap.coe_coe, Prod.map_apply, id_eq, ContinuousMap.coe_mk, mul_zero, ne_eq]
+        unfold splitAtLast homeoNeqLast
+        simp only [ne_eq, Fin.coe_eq_castSucc, Homeomorph.trans_apply, Homeomorph.funSplitAt_apply,
+          Fin.natCast_eq_last, Homeomorph.coe_prodCongr, Homeomorph.refl_apply, Prod.map_apply,
+          id_eq, Homeomorph.symm_trans_apply, Homeomorph.prodCongr_symm, Homeomorph.refl_symm,
+          Homeomorph.symm_symm, Homeomorph.apply_symm_apply, EmbeddingLike.apply_eq_iff_eq,
+          Prod.mk.injEq, true_and]
+        ext i
+        simp only [Homeomorph.piCongr_apply, Equiv.coe_fn_symm_mk, Fin.eta, Homeomorph.refl_apply,
+          id_eq]
+      map_one_left y := by
+        unfold boundaryJarDeformRetrToBot boundaryJarInclusion deformRetrToBot
+        simp only [ContinuousMap.prodMap_apply, ContinuousMap.coe_id, ContinuousMap.coe_mk,
+          Prod.map_apply, id_eq, ContinuousMap.comp_apply, ContinuousMap.coe_coe, mul_one,
+          Prod.mk.eta, Homeomorph.symm_apply_apply, Subtype.coe_eta, ContinuousMap.id_apply] }
+
+/-- Deformation retraction from the cube to the point `0`. -/
+def deformRetrToZero {n : ℕ} : C(I × I^ Fin n, I^ Fin n) where
+  toFun := fun ⟨t, y⟩ ↦ fun i ↦ y i * σ t
+  continuous_toFun := by fun_prop
+
+instance instContractibleSpace {n : ℕ} : ContractibleSpace (I^ Fin n) := by
+  apply (contractible_iff_id_nullhomotopic _).mpr
+  use 0
+  exact Nonempty.intro <|
+    { toContinuousMap := deformRetrToZero
+      map_zero_left y := by
+        simp only [deformRetrToZero, ContinuousMap.toFun_eq_coe, ContinuousMap.coe_mk,
+          unitInterval.symm_zero, mul_one, ContinuousMap.id_apply]
+      map_one_left y := by
+        simp only [deformRetrToZero, ContinuousMap.toFun_eq_coe, ContinuousMap.coe_mk,
+          unitInterval.symm_one, mul_zero, ContinuousMap.const_apply]
+        rfl }
+
+instance instContractibleSpaceBoundaryJar {n : ℕ} : ContractibleSpace (boundaryJar (n + 1)) :=
+  ContinuousMap.HomotopyEquiv.contractibleSpace hequivBoundaryJar.symm
+
+end instContractibleSpaceBoundaryJar
+
 
 end Cube

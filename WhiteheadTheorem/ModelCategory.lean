@@ -1,31 +1,15 @@
 -- import Mathlib.Topology.CWComplex
-import Mathlib.CategoryTheory.Square
+-- import Mathlib.CategoryTheory.Square
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
-import Mathlib.CategoryTheory.MorphismProperty.Factorization
-import Mathlib.CategoryTheory.SmallObject.Construction
-
--- import LeanCopilot
--- https://live.lean-lang.org/#codez=JYWwDg9gTgLgBAWQIYwBYBtgCMB0AVCSdCAcwE8cBhAdUonHQFMAPAKAFp25UYYwBnAFwB6YUyQA7MFAgA3RlHYBjeiACuE4DAoktqNbmARhIFBmwAWAPoATCEv7DkaTFmEEipMsJp0GLHB4QdABiX3owJmYAEgAGIA
+-- import Mathlib.CategoryTheory.MorphismProperty.Factorization
+-- import Mathlib.CategoryTheory.SmallObject.Construction
 
 -----------------------------------------------------------------
 
--- example (a b c : Nat) : a + b + c = a + c + b := by
---   suggest_tactics "rw"
-
 open CategoryTheory
-
-#check MorphismProperty
-#check MorphismProperty.MapFactorizationData
-#check MorphismProperty.FactorizationData
 
 
 section LiftingProperties
-
-#check CommSq.HasLift
-#check HasLiftingProperty
-#check Square               -- import Mathlib.CategoryTheory.Square
-#check Square.isPushout_iff -- import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
-#check IsPullback           -- import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 namespace CategoryTheory.IsPushout
 
@@ -74,4 +58,4 @@ lemma pushout_preserves_left_lifting_property
 end LiftingProperties
 
 -- small object argument
-#check SmallObject.functor
+-- #check SmallObject.functor

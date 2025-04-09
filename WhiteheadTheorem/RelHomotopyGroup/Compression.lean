@@ -48,37 +48,37 @@ lemma compression_criterion_2
   have H : ContinuousMap.HomotopicWith .. := Quotient.eq.mp fz.symm
   -- have H_fun := H.some.toContinuousMap
   let R := Cube.strongDeformRetrToBoundaryJar n
-  use H.some.toContinuousMap.comp <| (toContinuousMap Cube.splitAtLastFin).comp <|
-    R.r.comp <| Cube.inclToTopFace
+  use H.some.toContinuousMap.comp <| (toContinuousMap Cube.splitAtLast).comp <|
+    R.r.comp <| Cube.inclToTop
   constructor
   · intro x hx
     have ⟨y, hy⟩ := Set.mem_range.mp hx
     rw [← hy]
-    have : ∀ y ∈ ⊔I^(n+1), (Nonempty.some H) (Cube.splitAtLastFin y) ∈ A := by
+    have : ∀ y ∈ ⊔I^(n+1), (Nonempty.some H) (Cube.splitAtLast y) ∈ A := by
       intro y hy
-      rcases Cube.splitAtLastFin_boundaryJar hy with h_bot | h_side
+      rcases Cube.mem_boundaryJar_iff_splitAtLast.mp hy with h_bot | h_side
       · change (Nonempty.some H).toFun
-          ⟨(Cube.splitAtLastFin y).fst, (Cube.splitAtLastFin y).snd⟩ ∈ A
-        rw [h_bot, H.some.map_zero_left (Cube.splitAtLastFin y).snd, RelGenLoop.const]
+          ⟨(Cube.splitAtLast y).fst, (Cube.splitAtLast y).snd⟩ ∈ A
+        rw [h_bot, H.some.map_zero_left (Cube.splitAtLast y).snd, RelGenLoop.const]
         simp only [ContinuousMap.const_apply, Subtype.coe_prop]
-      · exact H.some.prop' (Cube.splitAtLastFin y).fst |>.left _ h_side
-    exact this (R.r <| Cube.inclToTopFace y) <| R.r_range <| Set.mem_range_self _
+      · exact H.some.prop' (Cube.splitAtLast y).fst |>.left _ h_side
+    exact this (R.r <| Cube.inclToTop y) <| R.r_range <| Set.mem_range_self _
   · exact Nonempty.intro <|
-    { toFun := (ContinuousMap.Homotopy.refl Cube.inclToTopFace).hcomp <|
-        R.H.hcomp <| (ContinuousMap.Homotopy.refl (toContinuousMap Cube.splitAtLastFin)).hcomp <|
+    { toFun := (ContinuousMap.Homotopy.refl Cube.inclToTop).hcomp <|
+        R.H.hcomp <| (ContinuousMap.Homotopy.refl (toContinuousMap Cube.splitAtLast)).hcomp <|
           (ContinuousMap.Homotopy.refl H.some.toContinuousMap)
       -- Note: `ContinuousMap.Homotopy.hcomp` composes in the opposite order of `ContinuousMap.comp`
       continuous_toFun := ContinuousMapClass.map_continuous _
-      map_zero_left y := by simp [Cube.inclToTopFace, Cube.splitAtLastFin]
+      map_zero_left y := by simp [Cube.inclToTop, Cube.splitAtLast]
       map_one_left y := by simp only [comp_assoc, id_apply, Homotopy.apply_one, comp_apply,
         ContinuousMap.coe_coe, Homotopy.coe_toContinuousMap, HomotopyWith.coe_toHomotopy]
       prop' t y hy := by
         simp only [comp_assoc, id_apply, Homotopy.hcomp_apply, Homotopy.refl_apply,
           HomotopyWith.coe_toHomotopy, ContinuousMap.coe_coe, Homotopy.coe_toContinuousMap, coe_mk]
-        have := R.H.prop' t _ (Cube.inclToTopFace.mem_boundaryJar_of hy)
+        have := R.H.prop' t _ (Cube.inclToTop.mem_boundaryJar_of hy)
         simp only [id_apply, toFun_eq_coe, Homotopy.coe_toContinuousMap,
           HomotopyWith.coe_toHomotopy, coe_mk] at this
-        rw [this, Cube.splitAtLastFin_inclToTopFace_eq, HomotopyWith.apply_one] }
+        rw [this, Cube.splitAtLast_inclToTop_eq, HomotopyWith.apply_one] }
 
 /-- Same as `compression_criterion_2`, except that the codomain of `g` is explicitly `A`. -/
 lemma compression_criterion_2_subtype

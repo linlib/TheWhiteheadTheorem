@@ -1,8 +1,15 @@
 import Mathlib.Data.Real.Archimedean
 import Mathlib.Data.Fintype.Lattice
 import Mathlib.Order.ConditionallyCompleteLattice.Finset
-import Mathlib.Topology.ContinuousMap.Basic
+import Mathlib.Topology.Homotopy.Basic
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
 -- import Mathlib.Topology.Category.TopCat.Limits.Basic
+
+
+lemma ContinuousMap.Homotopic.of_eq
+    (X Y : Type u) [TopologicalSpace X] [TopologicalSpace Y] (f g : C(X, Y)) (hfg : f = g) :
+    f.Homotopic g :=
+  hfg ▸ ContinuousMap.Homotopic.refl f
 
 
 section Real.iSup
@@ -109,3 +116,19 @@ theorem liftCoverClosed_coe' {i : ι} (x : α) (hx : x ∈ S i) :
 end ContinuousMap
 
 end GluingLemma
+
+
+
+-- namespace CategoryTheory.IsPushout
+
+-- variable {C : Type*} [Category C] {Z X Y P : C}
+--   {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P}
+
+-- lemma uniq (hP : IsPushout f g inl inr) {W : C} (h : X ⟶ W) (k : Y ⟶ W) (w : f ≫ h = g ≫ k)
+--     (d : P ⟶ W) (hl : inl ≫ d = h) (hr : inr ≫ d = k) : d = hP.desc h k w :=
+--   hP.isColimit.uniq (CommSq.mk w).cocone d fun j => match j with
+--     | none => by simp; congr
+--     | some Limits.WalkingPair.left => by simp; congr
+--     | some Limits.WalkingPair.right => by simp; congr
+
+-- end CategoryTheory.IsPushout

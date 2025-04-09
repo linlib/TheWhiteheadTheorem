@@ -3,6 +3,11 @@ import Mathlib.Data.Set.Basic
 import Mathlib.Tactic
 
 
+/-!
+TODO: Use `Pointed` (the category of pointed types) in Mathlib.
+-/
+
+
 /- A pointed map from `(X, x₀)` to `(Y, y₀)` is a function `f : X → Y` such that `f x₀ = y₀`. -/
 class IsPointedMap {X Y : Type*} [Inhabited X] [Inhabited Y] (f : X → Y) : Prop where
   map_default : f default = default
@@ -41,6 +46,18 @@ if `Ker g = Im f`. -/
 def IsExactAt {X Y Z : Type*} [Inhabited X] [Inhabited Y] [Inhabited Z]
     (f : X → Y) (g : Y → Z) [IsPointedMap f] [IsPointedMap g] : Prop :=
   g ⁻¹' {default} = Set.range f
+
+lemma isExactAt_of_ker_supset_im_of_ker_subset_im
+    {X Y Z : Type*} [Inhabited X] [Inhabited Y] [Inhabited Z]
+    {f : X → Y} {g : Y → Z} [IsPointedMap f] [IsPointedMap g]
+    (hsup : ∀ y, (∃ x, f x = y) → g y = default)
+    (hsub : ∀ y, (g y = default) → ∃ x, f x = y) :
+    IsExactAt f g := by
+  apply Set.eq_of_subset_of_subset
+  · intro y hy
+    exact Set.mem_range.mpr <| hsub y <| Set.mem_preimage.mp hy
+  · intro y hy
+    exact Set.mem_preimage.mpr <| Set.mem_singleton_iff.mpr <| hsup y <| Set.mem_range.mp hy
 
 /-!
 Given an exact sequence
@@ -87,16 +104,19 @@ private lemma ker_c_eq_C (c : C → D) (d : D → E) (d_inj : Function.Injective
   convert this
   exact Eq.symm (Set.preimage_range c)
 
-def midEqZeroOfFive (a : A → B) (b : B → C) (c : C → D) (d : D → E)
+/-- `C = {0}` if there is an exact sequence `A --a-> B --b-> C --c-> D --d-> E`
+of five pointed sets such that `a` is surjective and `d` is injective. -/
+theorem unique_mid_of_five (a : A → B) (b : B → C) (c : C → D) (d : D → E)
     [IsPointedMap a] [IsPointedMap b] [IsPointedMap c] [IsPointedMap d]
     (a_surj : Function.Surjective a) (d_inj : Function.Injective d)
     (exb : IsExactAt a b) (exc : IsExactAt b c) (exd : IsExactAt c d) :
-    Unique C where
-  uniq := fun x ↦ by
-    have h1 := im_B_eq_zero a b a_surj exb
-    have h2 := ker_c_eq_C c d d_inj exd
-    have h : @Set.univ C = {default} := h2.symm.trans exc |>.trans h1
-    apply Set.eq_singleton_iff_unique_mem.mp h |>.right
-    simp only [Set.mem_univ]
+    Nonempty (Unique C) :=
+  Nonempty.intro <|
+    { uniq := fun x ↦ by
+        have h1 := im_B_eq_zero a b a_surj exb
+        have h2 := ker_c_eq_C c d d_inj exd
+        have h : @Set.univ C = {default} := h2.symm.trans exc |>.trans h1
+        apply Set.eq_singleton_iff_unique_mem.mp h |>.right
+        simp only [Set.mem_univ] }
 
 end ExactSeq

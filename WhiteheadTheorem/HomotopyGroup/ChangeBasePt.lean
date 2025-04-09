@@ -79,7 +79,7 @@ def const_loops : LevelHomotopy (@const (Fin n) _ _ _) const p where
 /-- Given a level homotopy from `f₀` to `f₁`,
 produce a level homotopy from `g ∘ f₀` to `g ∘ f₁`. -/
 def map (g : C(X, Y)) (L : LevelHomotopy f₀ f₁ p) :
-    LevelHomotopy (HomotopyGroup.inducedMap n x₀ g f₀) (HomotopyGroup.inducedMap n x₁ g f₁)
+    LevelHomotopy (GenLoop.inducedMap n x₀ g f₀) (GenLoop.inducedMap n x₁ g f₁)
       (p.map g.continuous) where
   toHomotopy := L.toHomotopy.hcomp (ContinuousMap.Homotopy.refl _)
   prop' t y hy := by
@@ -176,7 +176,7 @@ theorem homotopic_of_levelHomotopy_along_null_loop {f g : Ω^ (Fin n) X x₀}
 /-- Suppose `f`, `g` and `h` are `GenLoop`s,
 `K` is a level homotopy from `f` to `g` along a path `p`, and
 `L` is a level homotopy from `f` to `h` along a path `q`.
-If `p` and `q` are homotopic as pathhs (i.e., rel endpoints),
+If `p` and `q` are homotopic as paths (i.e., rel endpoints),
 then `g` and `h` are homotopic as `GenLoop`s (i.e., rel `∂I^n`). -/
 theorem homotopic_of_levelHomotopy_along_homotopic_paths
     {f : Ω^ (Fin n) X x₀} {g h : Ω^ (Fin n) X x₁} {p q : Path x₀ x₁}
@@ -272,7 +272,7 @@ lemma trans {p : Path x₀ x₁} {q : Path x₁ x₂} {f : Ω^ (Fin n) X x₀} :
   homotopic_of_levelHomotopy_along_homotopic_paths
     (GenLoop.LevelHomotopy.trans (p #~ f) (q #~ (p # f))) (p.trans q #~ f) (Path.Homotopic.refl _)
 
-/-- ``(q # (p # f)) ≈ (r # f)` if `r ≈ p.trans q`. -/
+/-- `(q # (p # f)) ≈ (r # f)` if `r ≈ p.trans q`. -/
 lemma trans' {p : Path x₀ x₁} {q : Path x₁ x₂} {r : Path x₀ x₂} {f : Ω^ (Fin n) X x₀}
     (r_pq : Path.Homotopic r (p.trans q)) :
     GenLoop.Homotopic (q # (p # f)) (r # f) :=
@@ -293,8 +293,8 @@ See also `HomotopyGroup.map_changeBasePt_eq_changeBasePt_map`.
 -/
 lemma map_changeBasePt_homotopic_changeBasePt_map
     {p : Path x₀ x₁} {α : Ω^ (Fin n) X x₀} (f : C(X, Y)) :
-    GenLoop.Homotopic (HomotopyGroup.inducedMap n x₁ f (p # α))
-      (p.map f.continuous # HomotopyGroup.inducedMap n x₀ f α) :=
+    GenLoop.Homotopic (GenLoop.inducedMap n x₁ f (p # α))
+      (p.map f.continuous # GenLoop.inducedMap n x₀ f α) :=
   homotopic_of_levelHomotopy_along_homotopic_paths (GenLoop.LevelHomotopy.map f (p #~ α))
     (_ #~ _) (Path.Homotopic.refl _)
 
@@ -397,7 +397,7 @@ instance isIso_pointedHomOfPath (n : ℕ) (p : Path x₀ x₁) :
 lemma bijective_changeBasePt (n : ℕ) (p : Path x₀ x₁) :
     Function.Bijective (changeBasePt n p) := by
   rw [(by rfl : changeBasePt n p = ConcreteCategory.hom (pointedHomOfPath n p))]
-  apply (Pointed.isIso_iff_bijective _).mpr
+  apply (Pointed.isIso_iff_bijective _).mp
   apply isIso_pointedHomOfPath
 
 /-- `ChangeBasePt` commutes with the induced map:
@@ -438,7 +438,7 @@ theorem inducedPointedHom_comp_pointedHomOfHomotopy_eq
   simp only [functorToType, CategoryTheory.Under.mk_right]
   rw [← Quotient.out_eq α]
   apply Quotient.sound
-  simp only [inducedMap', CategoryTheory.Under.mk_right, CategoryTheory.Under.homMk_right,
+  simp only [GenLoop.inducedMap', CategoryTheory.Under.mk_right, CategoryTheory.Under.homMk_right,
     TopCat.hom_ofHom]
   generalize_proofs fα_mem gα_mem
   let fα : Ω^ (Fin n) X (f x₀) := ⟨f.comp α.out, fα_mem⟩
@@ -462,15 +462,11 @@ lemma injective_toFun_surjective_invFun_of_homotopyEquiv (n : ℕ) (x₀ : X) (E
     have iso_gf : IsIso (inducedPointedHom n x₀ (E.invFun.comp E.toFun)) :=
       IsIso.of_isIso_fac_right gf_ch_eq_id  -- using `isIso_inducedPointedHom_id`
     infer_instance  -- using `iso_gf` and `CategoryTheory.hom_isIso`
-  have : inducedPointedHom n x₀ (E.invFun.comp E.toFun) =
-      inducedPointedHom n _ E.toFun ≫ inducedPointedHom n _ E.invFun :=
-    inducedPointedHom_comp x₀ E.toFun E.invFun
   have : (inducedPointedHom n x₀ (E.invFun.comp E.toFun)).toFun =
       (inducedPointedHom n _ E.invFun).toFun ∘ (inducedPointedHom n _ E.toFun).toFun := by
-    rw [this]
+    rw [inducedPointedHom_comp n x₀ E.toFun E.invFun]
     simp only [ContinuousMap.comp_apply, ContinuousMap.HomotopyEquiv.toFun_eq_coe,
       ContinuousMap.HomotopyEquiv.coe_invFun, Pointed.Hom.comp_toFun']
-  replace bgf : Function.Bijective (inducedPointedHom n x₀ (E.invFun.comp E.toFun)).toFun := bgf
   replace bgf : Function.Bijective <|
       (inducedPointedHom n _ E.invFun).toFun ∘ (inducedPointedHom n x₀ E.toFun).toFun := by
     rw [← this]
@@ -497,9 +493,24 @@ theorem isIso_inducedPointedHom_of_isHomotopyEquiv (n : ℕ) (x₀ : X) (f : C(X
         (bh : Function.Bijective h) (bf : Function.Bijective f) : Function.Surjective g :=
       Function.Surjective.of_comp <| (Function.Surjective.of_comp_iff' bh (g ∘ f)).mp shgf
     refine this surj ?_ ?_
-    · apply (Pointed.isIso_iff_bijective _).mpr
+    · apply (Pointed.isIso_iff_bijective _).mp
       infer_instance
     · apply bijective_changeBasePt
-  exact (Pointed.isIso_iff_bijective _).mp ⟨inj_f, surj_f⟩
+  exact (Pointed.isIso_iff_bijective _).mpr ⟨inj_f, surj_f⟩
+
+theorem isIso_inducedPointedHom'_of_isHomotopyEquiv
+    (n : ℕ) {X Y : TopCat.{u}} (x₀ : X) (f : X ⟶ Y)
+    (hf : IsHomotopyEquiv f.hom) : IsIso (inducedPointedHom' n x₀ f) := by
+  rw [inducedPointedHom'_eq_inducedPointedHom]
+  apply isIso_inducedPointedHom_of_isHomotopyEquiv
+  exact hf
+
+theorem isIso_inducedPointedHom'_of_isHomeomorph
+    (n : ℕ) {X Y : TopCat.{u}} (x₀ : X) (f : X ⟶ Y)
+    (hf : IsHomeomorph f.hom) : IsIso (inducedPointedHom' n x₀ f) := by
+  let eq := Homeomorph.toHomotopyEquiv (hf.homeomorph)
+  apply isIso_inducedPointedHom_of_isHomotopyEquiv
+  rw [(by rfl : f.hom' = eq.toFun)]
+  use eq
 
 end HomotopyGroup

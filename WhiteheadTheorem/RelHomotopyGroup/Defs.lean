@@ -141,23 +141,23 @@ def jStar : π_ n X a → π﹍ n X A a :=
 (where the last coordinate equals `1`). -/
 def bd' (f : RelGenLoop (n + 1) X A a) : π_ n A a :=
   Quotient.mk _
-    ⟨ { toFun y := ⟨ (f ∘ Cube.inclToTopFace) y,
-          f.property.left _ ⟨n, by right; simp [Cube.splitAtLastFin, Cube.inclToTopFace]⟩ ⟩
+    ⟨ { toFun y := ⟨ (f ∘ Cube.inclToTop) y,
+          f.property.left _ ⟨n, by right; simp [Cube.splitAtLast, Cube.inclToTop]⟩ ⟩
         continuous_toFun := by
           refine Continuous.subtype_mk ?_ _
-          exact f.val.continuous_toFun.comp Cube.inclToTopFace.continuous },
+          exact f.val.continuous_toFun.comp Cube.inclToTop.continuous },
       fun y hy ↦ by
         apply Subtype.eq
         apply f.property.right _
-        simp only [Cube.inclToTopFace, ne_eq, ContinuousMap.coe_mk]
-        exact Cube.inclToTopFace.mem_boundaryJar_of hy ⟩
+        simp only [Cube.inclToTop, ne_eq, ContinuousMap.coe_mk]
+        exact Cube.inclToTop.mem_boundaryJar_of hy ⟩
 
 /-- The boundary map $∂$ (of pointed sets) from πₙ₊₁(X, A, a) to πₙ(A, a) -/
 def bd : π﹍ (n + 1) X A a → π_ n A a :=
   Quotient.lift (bd' n X A a) fun f g H ↦ Quotient.sound <| Nonempty.intro
     { toFun ty :=
-        ⟨ContinuousMap.Homotopy.refl Cube.inclToTopFace |>.hcomp H.some.toHomotopy ty,
-          by apply H.some.prop' ty.1 |>.left; exact Cube.inclToTopFace.mem_boundary _ ⟩
+        ⟨ContinuousMap.Homotopy.refl Cube.inclToTop |>.hcomp H.some.toHomotopy ty,
+          by apply H.some.prop' ty.1 |>.left; exact Cube.inclToTop.mem_boundary _ ⟩
       continuous_toFun := by
         refine Continuous.subtype_mk ?_ _
         apply ContinuousMapClass.map_continuous
@@ -166,11 +166,11 @@ def bd : π﹍ (n + 1) X A a → π_ n A a :=
       map_one_left := by simp only [ContinuousMap.Homotopy.apply_one, ContinuousMap.comp_apply,
         Function.comp_apply, ContinuousMap.coe_mk, implies_true]
       prop' t y hy := by
-        simp; rw [← H.some.map_zero_left (Cube.inclToTopFace y)]
-        change H.some (t, Cube.inclToTopFace y) = H.some (0, Cube.inclToTopFace y)
-        convert H.some.prop' t |>.right _ (Cube.inclToTopFace.mem_boundaryJar_of hy)
+        simp; rw [← H.some.map_zero_left (Cube.inclToTop y)]
+        change H.some (t, Cube.inclToTop y) = H.some (0, Cube.inclToTop y)
+        convert H.some.prop' t |>.right _ (Cube.inclToTop.mem_boundaryJar_of hy)
         rw [H.some.apply_zero]
-        exact f.property.right _ (Cube.inclToTopFace.mem_boundaryJar_of hy) }
+        exact f.property.right _ (Cube.inclToTop.mem_boundaryJar_of hy) }
 
 
 section PointedSets

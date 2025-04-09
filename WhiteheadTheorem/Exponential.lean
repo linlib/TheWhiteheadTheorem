@@ -94,6 +94,14 @@ def curriedArgSwap [LocallyCompactSpace A] [LocallyCompactSpace B] :
 lemma curriedArgSwap_curriedArgSwap [LocallyCompactSpace A] [LocallyCompactSpace B] :
   curriedArgSwap ∘ (curriedArgSwap (A := A) (B := B) (Y := Y)) = id := rfl
 
+def curryLeft (f : C(A × B, Y)) (b : B) : C(A, Y) where
+  toFun a := f ⟨a, b⟩
+  continuous_toFun := f.continuous.curry_left
+
+def curryRight (f : C(A × B, Y)) (a : A) : C(B, Y) where
+  toFun b := f ⟨a, b⟩
+  continuous_toFun := f.continuous.curry_right
+
 end ContinuousMap
 
 ---------------------------------------------------------------
