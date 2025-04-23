@@ -1,7 +1,8 @@
 import WhiteheadTheorem.HomotopyGroup.InducedMaps
 
 
-open CategoryTheory ContinuousMap
+open CategoryTheory
+open scoped ContinuousMap
 
 universe u
 

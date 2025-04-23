@@ -1,7 +1,10 @@
 import WhiteheadTheorem.Auxiliary
+import WhiteheadTheorem.Compressible.CWComplex
 import WhiteheadTheorem.Compressible.Defs
 import WhiteheadTheorem.Compressible.Disk
-import WhiteheadTheorem.CWComplex
+import WhiteheadTheorem.Compressible.WeakEquiv
+import WhiteheadTheorem.CWComplex.Basic
+import WhiteheadTheorem.CWComplex.IProd
 import WhiteheadTheorem.Defs
 import WhiteheadTheorem.Exponential
 import WhiteheadTheorem.HEP.Cofibration
@@ -23,24 +26,20 @@ import WhiteheadTheorem.Shapes.Maps
 import WhiteheadTheorem.Shapes.Pushout
 
 
-open CategoryTheory TopCat
-open scoped Topology  -- notation π﹍
+open CategoryTheory
 
 universe u
 
 theorem WhiteheadTheorem (X Y : CWComplex.{u}) (f : (X : TopCat.{u}) ⟶ Y) :
     IsWeakHomotopyEquiv f.hom → IsHomotopyEquiv f.hom := by
   intro hf
-  replace hf : ∀ n x, Nonempty <| Unique <|
-      π﹍ (n + 1) (MapCyl f) (MapCyl.top f) (MapCyl.domInclToTop f x) :=
-    fun n x ↦ RelHomotopyGroup.unique_pi_mapCyl_of_isWeakHomotopyEquiv n f x hf
-  sorry
+  obtain ⟨g, hgf⟩ := hf.CWComplex_induced_map_surjective Y (𝟙 _)
+  have hfgf : (f ≫ g ≫ f).hom.Homotopic f.hom :=
+    (ContinuousMap.Homotopic.refl f.hom).hcomp hgf
+  use
+    { toFun := f.hom
+      invFun := g.hom
+      left_inv := hf.CWComplex_induced_map_injective X (f ≫ g) (𝟙 _) hfgf
+      right_inv := hgf }
 
--- #print axioms RelCWComplex.skInclusion_isCofibration
--- #print axioms RelHomotopyGroup.ker_jStar_supset_im_iStar
--- #print axioms RelHomotopyGroup.ker_jStar_subset_im_iStar
--- #print axioms RelHomotopyGroup.ker_bd_supset_im_jStar
--- #print axioms RelHomotopyGroup.ker_bd_subset_im_jStar
--- #print axioms RelHomotopyGroup.ker_iStar_supset_im_bd
--- #print axioms RelHomotopyGroup.ker_iStar_subset_im_bd
 -- #print axioms WhiteheadTheorem

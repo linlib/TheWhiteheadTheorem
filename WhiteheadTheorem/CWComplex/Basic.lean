@@ -107,6 +107,12 @@ $n$-skeleton) of a relative CW-complex -/
 def skInclusionToNextSk (X : RelCWComplex) (n : ℕ) : X.sk n ⟶ X.sk (n + 1) :=
   (X.attachCells n).inclusion
 
+/-- The inclusion map from `sk n` (i.e., the $(n-1)$-skeleton) to `sk m` (i.e., the
+$(m-1)$-skeleton) of a relative CW-complex -/
+def skInclusionToSk (X : RelCWComplex) {n : ℕ} {m : ℕ} (hnm : n ≤ m) : X.sk n ⟶ X.sk m :=
+  (Functor.ofSequence X.skInclusionToNextSk).map (homOfLE hnm)
+  -- Functor.OfSequence.map X.skInclusionToNextSk n m hnm
+
 -- def sigmaAttachMaps (X : RelativeCWComplex.{u}) (n : ℕ) := (X.attachCells n).sigmaAttachMaps
 
 -- def sigmaDiskBoundaryInclusion (X : RelativeCWComplex.{u}) (n : ℕ) :=
@@ -123,8 +129,16 @@ instance : Coe CWComplex TopCat where
   coe X := toTopCat X.toRelCWComplex
 
 /-- The inclusion map from `sk n` (i.e., the $(n-1)$-skeleton of `X`) to `X` -/
-def skInclusion (X : RelCWComplex) (n : ℕ) : X.sk n ⟶ X :=
+def skInclusion (X : RelCWComplex.{u}) (n : ℕ) : X.sk n ⟶ X :=
   Limits.colimit.ι (Functor.ofSequence _) n
+
+lemma skInclusionToNextSk_skInclusion_eq (X : RelCWComplex.{u}) (n : ℕ) :
+    X.skInclusionToNextSk n ≫ X.skInclusion (n + 1) = X.skInclusion n := by
+  unfold skInclusionToNextSk skInclusion
+  convert Limits.colimit.w (Functor.ofSequence X.skInclusionToNextSk) <|
+    homOfLE <| Nat.le_succ <| n
+  simp only [Nat.succ_eq_add_one, homOfLE_leOfHom, Functor.ofSequence_map_homOfLE_succ]
+  rfl
 
 end Topology
 

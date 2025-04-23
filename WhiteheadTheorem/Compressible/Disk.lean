@@ -612,7 +612,7 @@ then the inclusion map `MapCyl.domIncl φ` from `X` to the mapping cylinder of `
 is `n`-compressible for each natural number `n`. -/
 theorem isCompressible_mapCyl_domIncl_of_isWeakHomotopyEquiv
     (n : ℕ) {X Y : TopCat.{u}} (φ : X ⟶ Y) (hφ : IsWeakHomotopyEquiv φ.hom) :
-    IsCompressible (diskBoundaryInclusion n) <| MapCyl.domIncl φ where
+    IsCompressible (diskBoundaryInclusion n) (MapCyl.domIncl φ) where
   sq_hasLift := fun {F f} sq ↦ by
     have com := isCompressible_mapcyl_domInclFromTop_of_isWeakHomotopyEquiv n φ hφ
     have sq' : CommSq (f ≫ (ofHom <| MapCyl.domInclToTop φ)) (diskBoundaryInclusion n)

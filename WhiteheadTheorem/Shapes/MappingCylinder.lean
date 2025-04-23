@@ -32,100 +32,14 @@ abbrev condition : f ≫ inl f = Cyl.i₀ X ≫ inr f := Limits.pushout.conditio
 /-- Inclusion map from the domain `X` to the mapping cylinder of `f : X ⟶ Y` -/
 abbrev domIncl : X ⟶ MapCyl f := Cyl.i₁ X ≫ inr f
 
+/-- Inclusion map from the codomain `Y` to the mapping cylinder of `f : X ⟶ Y` -/
+noncomputable alias codIncl := inl
+
 /-- The top surface of the mapping cylinder -/
 abbrev top : Set (MapCyl f) := Set.range (domIncl f)
 
+
 section isEmbedding_domIncl
-
-lemma _root_.TopCat.Cyl.set_neq_zero_eq_compl_range_i₀ (X : TopCat.{u}) :
-    {⟨_, t⟩ : TopCat.of (X × I) | t ≠ 0} = (Set.range (Cyl.i₀ X))ᶜ := by
-  rw [(by rfl: (Set.range (Cyl.i₀ X))ᶜ = {z | z ∉ Set.range (Cyl.i₀ X)})]
-  simp only [ne_eq, hom_ofHom, ContinuousMap.coe_mk, Set.mem_range, not_exists]
-  apply Set.eq_of_subset_of_subset
-  · intro z hz x heq
-    subst heq
-    simp only [Set.mem_setOf_eq, not_true_eq_false] at hz
-  · intro z hz
-    simp only [Set.mem_setOf_eq] at hz ⊢
-    obtain ⟨fst, snd⟩ := z
-    obtain ⟨val, property⟩ := snd
-    simp only [Prod.mk.injEq, not_and, forall_eq] at hz ⊢
-    intro a
-    simp_all only [not_true_eq_false]
-
-def _root_.TopCat.Cyl.i₁_to_compl_range_i₀ (X : TopCat.{u}) :
-    C(X, (Set.range (Cyl.i₀ X)).compl) where
-  toFun x := ⟨Cyl.i₁ _ x, by
-      rw [(by rfl: (Set.range (Cyl.i₀ X)).compl = {z | z ∉ Set.range (Cyl.i₀ X)})]
-      simp_all only [hom_ofHom, ContinuousMap.coe_mk, Set.mem_range, not_exists, Set.mem_setOf_eq,
-        Prod.mk.injEq, zero_ne_one, and_false, not_false_eq_true, implies_true] ⟩
-  continuous_toFun := by
-    apply Continuous.subtype_mk
-    apply ContinuousMap.continuous
-
-lemma _root_.TopCat.Cyl.isClosed_range_i₀ (X : TopCat.{u}) :
-    IsClosed <| Set.range (Cyl.i₀ X) := by
-  have : {xt : TopCat.of (X × I) | xt.snd = 0} = Set.range (Cyl.i₀ X) := by
-    apply compl_inj_iff.mp
-    convert Cyl.set_neq_zero_eq_compl_range_i₀ X using 1
-  rw [← this]
-  apply isClosed_eq
-  exact continuous_snd
-  exact continuous_const
-
-lemma _root_.TopCat.Cyl.isClosedEmbedding_i₁_to_compl_range_i₀ (X : TopCat.{u}) :
-    Topology.IsClosedEmbedding (Cyl.i₁_to_compl_range_i₀ X) := by
-  apply Topology.IsClosedEmbedding.of_continuous_injective_isClosedMap
-    (ContinuousMap.continuous _)
-  · unfold Cyl.i₁_to_compl_range_i₀
-    intro x₁ x₂ hx
-    simp_all only [hom_ofHom, ContinuousMap.coe_mk, Subtype.mk.injEq, Prod.mk.injEq, and_true]
-  · intro s hs
-    have isClosed_of_isClosed_subtype_val
-        {X : Type u} [TopologicalSpace X] {A : Set X} {B : Set A}
-        (hB : IsClosed (Subtype.val '' B)) : IsClosed B := by
-      apply isClosed_induced_iff.mpr
-      use Subtype.val '' B
-      simp_all only [Subtype.val_injective, Set.preimage_image_eq, and_self]
-    change IsClosed ((Cyl.i₁_to_compl_range_i₀ X) '' s)
-    have : Subtype.val '' ((Cyl.i₁_to_compl_range_i₀ X) '' s) = s ×ˢ {1} := by
-      unfold Cyl.i₁_to_compl_range_i₀ Cyl.i₁
-      simp only [hom_ofHom, ContinuousMap.coe_mk]
-      ext x : 1
-      simp_all only [Set.mem_image, exists_exists_and_eq_and, Set.mem_prod, Set.mem_singleton_iff]
-      obtain ⟨fst, snd⟩ := x
-      obtain ⟨val, property⟩ := snd
-      simp_all only [Prod.mk.injEq, existsAndEq, true_and, and_congr_right_iff]
-      intro a
-      apply Iff.intro
-      · intro a_1
-        simp_all only
-      · intro a_1
-        simp_all only
-    have : IsClosed (Subtype.val '' ((Cyl.i₁_to_compl_range_i₀ X) '' s)) := by
-      rw [this]
-      exact IsClosed.prod hs isClosed_singleton
-    exact isClosed_of_isClosed_subtype_val this
-
-/-- used in `isEmbedding_domIncl` -/
-instance _root_.TopCat.Cyl.decidable_in_range_i₀ :
-    ∀ z, Decidable (z ∈ Set.range (Cyl.i₀ X)) := fun z ↦ by
-  have : z ∈ Set.range (Cyl.i₀ X) ↔ z.snd = 0 := by
-    constructor
-    · intro hz
-      simp_all only [ne_eq, hom_ofHom, ContinuousMap.coe_mk, Set.mem_range, not_exists]
-      obtain ⟨fst, snd⟩ := z
-      obtain ⟨val, property⟩ := snd
-      obtain ⟨w, h⟩ := hz
-      simp_all only [Prod.mk.injEq]
-    · intro hz
-      simp_all only [ne_eq, hom_ofHom, ContinuousMap.coe_mk, Set.mem_range, not_exists]
-      apply Exists.intro
-      · ext : 1
-        · rfl
-        · ext : 1; simp_all only [Set.Icc.coe_zero]
-  rw [this]
-  infer_instance
 
 lemma domIncl_hom_eq_pushoutInr'_comp :
     (domIncl f).hom = (pushoutInr' _ _).comp (Cyl.i₁_to_compl_range_i₀ X) := by
@@ -170,9 +84,12 @@ def retr : MapCyl f ⟶ Y :=
 lemma domIncl_retr_eq : domIncl f ≫ retr f = f := by
   unfold domIncl retr
   rw [Category.assoc, Limits.pushout.inr_desc, ← Category.assoc, Cyl.i₁_r₀_eq_id, Category.id_comp]
+lemma domIncl_retr_eq_assoc : domIncl f ≫ retr f ≫ h = f ≫ h := by
+  rw [← Category.assoc, domIncl_retr_eq f]
 
-lemma inl_retr_eq_id : inl f ≫ retr f = 𝟙 Y := by
-  rw [retr, Limits.pushout.inl_desc]
+lemma inl_retr_eq_id : inl f ≫ retr f = 𝟙 Y := by rw [retr, Limits.pushout.inl_desc]
+lemma codIncl_retr_eq_id : codIncl f ≫ retr f = 𝟙 Y := inl_retr_eq_id f
+-- alias codIncl_retr_eq_id := inl_retr_eq_id
 
 /-- The curried form of the deformation retraction
 from a mapping cylinder of `f : X ⟶ Y` to its base `Y`.
@@ -180,6 +97,7 @@ This is a curried homotopy from `retr f ≫ inl f` (when `t = 0`) to `𝟙 (MapC
 The curried form facilitates the proof of continuity (see `MapCyl.equivBase.left_inv`),
 and is equal to uncurried form when evaluated at any `t : I`
 (see `curriedDeformRetrEvalAt_eq_deformRetrEvalAt`).
+
 Note: `s * t` uses the instance `unitInterval.continuousMul` in `Shapes/Maps.lean`. -/
 def curriedDeformRetr : MapCyl f ⟶ TopCat.of C(I, MapCyl f) :=
   Limits.pushout.desc (PathSpace.homToConstPaths (inl f))

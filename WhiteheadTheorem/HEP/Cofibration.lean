@@ -1,6 +1,6 @@
 import WhiteheadTheorem.Shapes.Jar
 import WhiteheadTheorem.Shapes.Maps
-import WhiteheadTheorem.CWComplex
+import WhiteheadTheorem.CWComplex.Basic
 -- import WhiteheadTheorem.Auxiliary
 import WhiteheadTheorem.Exponential
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.Square
@@ -63,8 +63,12 @@ instance HasCurriedHEP.of_sigma_map {J : Type u} {A B : J → TopCat.{u}}
 
 section HasLiftingProperty.of_colimit_ofSequence
 
-variable {C : Type*} [Category C] {A Z Y : C}
-  {X : ℕ → C} (i : ∀ n, X n ⟶ X (n + 1)) [Limits.HasColimit (Functor.ofSequence i)]
+variable {C : Type u} [Category.{v, u} C] {A Z Y : C}
+  {X : ℕ → C} (i : ∀ n, X n ⟶ X (n + 1))
+  [Limits.HasColimitsOfShape ℕ C]
+  -- [Limits.HasColimit (Functor.ofSequence i)]
+  -- [Limits.HasColimit (Functor.ofSequence fun n ↦ i (n + 1))]
+  -- [∀ m, Limits.HasColimit (Functor.ofSequence fun n ↦ i (m + n))]
   (p : Z ⟶ Y) [lp : ∀ n, HasLiftingProperty (i n) p]
 
 namespace Limits.Cocone.ofSequence_of_hasLiftingProperty
@@ -93,14 +97,13 @@ noncomputable def app (h : X 0 ⟶ Z) (f : Limits.colimit (Functor.ofSequence i)
   | 0 => ⟨h, ⟨by
       convert bigSq.w using 1
       rw [← Category.assoc]; congr 1
-      exact Limits.colimit.cocone (Functor.ofSequence i) |>.w <| homOfLE (by omega : 0 ≤ 1) ⟩⟩
+      exact Limits.colimit.w (Functor.ofSequence i) <| homOfLE <| Nat.le_succ 0 ⟩⟩
   | n + 1 =>
       let liftStruct := (lp n).sq_hasLift (app h f bigSq n).property |>.exists_lift.some
       ⟨liftStruct.l, ⟨by
         convert (liftStruct.fac_right) using 1
         rw [← Category.assoc]; congr 1
-        have := Limits.colimit.cocone (Functor.ofSequence i) |>.w <|
-          homOfLE (by omega : n + 1 ≤ n + 1 + 1)
+        have := Limits.colimit.w (Functor.ofSequence i) <| homOfLE <| Nat.le_succ <| n + 1
         simp at this; exact this ⟩⟩
 
 noncomputable def _root_.Limits.Cocone.ofSequence_of_hasLiftingProperty
@@ -110,7 +113,7 @@ noncomputable def _root_.Limits.Cocone.ofSequence_of_hasLiftingProperty
   pt := Z
   ι := NatTrans.ofSequence (fun n ↦ (app i p h f bigSq n).val) fun n ↦ by
     simp [app]
-    generalize_proofs _ liftStruct   -- reuse `⋯` (an omitted proof)
+    generalize_proofs _ _ liftStruct   -- reuse `⋯` (an omitted proof)
     exact liftStruct.some.fac_left
 
 end Limits.Cocone.ofSequence_of_hasLiftingProperty
@@ -122,7 +125,7 @@ def CategoryTheory.Limits.Cocone.postcompose {J C : Type*} [Category J] [Categor
   pt := Y
   ι := { app j := cc.ι.app j ≫ p }
 
-instance HasLiftingProperty.of_colimit_ofSequence :
+instance HasLiftingProperty.of_colimit_ofSequence_zero :
     HasLiftingProperty (Limits.colimit.ι (Functor.ofSequence i) 0) p := ⟨fun {h f} sq ↦ by
   change X 0 ⟶ _ at h
   let ccz := Limits.Cocone.ofSequence_of_hasLiftingProperty i p h f sq -- a cocone whose point is Z
@@ -139,7 +142,7 @@ instance HasLiftingProperty.of_colimit_ofSequence :
           dsimp [ccy, Limits.Cocone.postcompose, ccz]
           dsimp [Limits.Cocone.ofSequence_of_hasLiftingProperty]
           dsimp [Limits.Cocone.ofSequence_of_hasLiftingProperty.app]
-          generalize_proofs _ liftStruct
+          generalize_proofs _ _ liftStruct
           exact liftStruct.some.fac_right.symm
     have uniq_desc_p : Limits.colimit.desc (Functor.ofSequence i) ccz ≫ p
         = cc.isColimit.desc ccy := by
@@ -149,12 +152,107 @@ instance HasLiftingProperty.of_colimit_ofSequence :
       exact cc.isColimit.fac ccz n
     rw [uniq_f, uniq_desc_p] ⟩ ⟩
 
+
+namespace Functor.ofSequence
+
+noncomputable abbrev coconeDropFirst
+    (cc : Limits.Cocone <| Functor.ofSequence i) :
+    Limits.Cocone <| Functor.ofSequence fun n ↦ i (n + 1) where
+  pt := cc.pt
+  ι := NatTrans.ofSequence (fun n ↦ cc.ι.app (n + 1))
+        (fun n ↦ by
+          simp only [Functor.ofSequence_obj, Functor.const_obj_obj, homOfLE_leOfHom,
+            Functor.ofSequence_map_homOfLE_succ, Functor.const_obj_map, Category.comp_id]
+          rw [← cc.w <| homOfLE <| Nat.le_succ <| n + 1]
+          simp_all only [Functor.ofSequence_obj, Nat.succ_eq_add_one, Functor.const_obj_obj,
+            homOfLE_leOfHom, Functor.ofSequence_map_homOfLE_succ] )
+
+noncomputable abbrev coconeUndropFirst
+    (cc' : Limits.Cocone <| Functor.ofSequence fun n ↦ i (n + 1)) :
+    Limits.Cocone <| Functor.ofSequence i where
+  pt := cc'.pt
+  ι :=
+    NatTrans.ofSequence
+      (fun n ↦ match n with
+        | 0 => (Functor.ofSequence i).map (homOfLE (by omega : 0 ≤ 1)) ≫ cc'.ι.app 0
+        | n + 1 => cc'.ι.app n )
+      (fun n ↦ match n with
+        | 0 => by
+            simp only [Functor.ofSequence_obj, Nat.reduceAdd, Functor.const_obj_obj,
+              homOfLE_leOfHom, Functor.ofSequence_map_homOfLE_succ, Functor.const_obj_map,
+              Category.comp_id]
+        | n + 1 => by
+            simp only [Functor.ofSequence_obj, Functor.const_obj_obj, homOfLE_leOfHom,
+              Functor.ofSequence_map_homOfLE_succ, Functor.const_obj_map, Category.comp_id]
+            rw [← cc'.w <| homOfLE <| Nat.le_succ n]
+            congr 1
+            simp_all only [Nat.succ_eq_add_one, homOfLE_leOfHom,
+              Functor.ofSequence_map_homOfLE_succ] )
+
+/-- Undrop (recover) the first morphism of
+`Limits.colimit.cocone (Functor.ofSequence fun n ↦ i (n + 1))` -/
+noncomputable abbrev colimitCoconeUndropFirst :
+    Limits.ColimitCocone <| Functor.ofSequence i := by
+  let i' := fun n ↦ i (n + 1)
+  -- let Xlim := Limits.colimit (Functor.ofSequence i)
+  -- let Xlim' := Limits.colimit (Functor.ofSequence i')
+  -- change Xlim ≅ Xlim'
+  let cc : Limits.Cocone (Functor.ofSequence i) :=
+    Functor.ofSequence.coconeUndropFirst i <| Limits.colimit.cocone (Functor.ofSequence i')
+  -- have : cc.pt = Xlim' := rfl
+  have lcc : Limits.IsColimit cc :=
+    { desc cc' :=
+        Limits.colimit.desc (Functor.ofSequence i') <| Functor.ofSequence.coconeDropFirst i cc'
+      fac cc' n := by
+        simp only [Functor.ofSequence_obj, Functor.const_obj_obj]
+        simp_all only [Limits.colimit.cocone_x, Functor.ofSequence_obj, Functor.const_obj_obj, homOfLE_leOfHom,
+          Functor.ofSequence_map_homOfLE_succ, Limits.colimit.cocone_ι, NatTrans.ofSequence_app, cc, i']
+        split
+        next x =>
+          simp_all only [Category.assoc, Limits.colimit.ι_desc, NatTrans.ofSequence_app, Nat.reduceAdd]
+          rw [← cc'.w <| homOfLE <| Nat.le_succ 0]
+          simp_all only [Functor.ofSequence_obj, Nat.succ_eq_add_one, Nat.reduceAdd, Functor.const_obj_obj,
+            homOfLE_leOfHom, Functor.ofSequence_map_homOfLE_succ, cc, i']
+        next x n => simp_all only [Nat.succ_eq_add_one, Limits.colimit.ι_desc, NatTrans.ofSequence_app]
+      uniq cc' M hM := by
+        apply Limits.colimit.hom_ext
+        intro n
+        simp only [Functor.ofSequence_obj, Limits.colimit.ι_desc, NatTrans.ofSequence_app, cc, i']
+        exact hM (n + 1) }
+  exact ⟨cc, lcc⟩
+
+/-- The colimit of a sequence `i` of morphisms is isomorphic to
+the colimit of the sequence with the first morphism dropped. -/
+noncomputable example :
+    Limits.colimit (Functor.ofSequence i) ≅
+    Limits.colimit (Functor.ofSequence fun n ↦ i (n + 1)) :=
+  Limits.colimit.isoColimitCocone <| Functor.ofSequence.colimitCoconeUndropFirst i
+
+end Functor.ofSequence
+
+
+instance HasLiftingProperty.of_colimit_ofSequence
+    {C : Type u} [Category.{v, u} C] {Z Y : C}
+    {X : ℕ → C} (i : ∀ n, X n ⟶ X (n + 1)) [Limits.HasColimitsOfShape ℕ C]
+    (p : Z ⟶ Y) [lp : ∀ n, HasLiftingProperty (i n) p]
+    (m : ℕ) :
+    HasLiftingProperty (Limits.colimit.ι (Functor.ofSequence i) m) p :=
+  match m with
+  | 0 => by infer_instance  -- HasLiftingProperty.of_colimit_ofSequence_zero
+  | m + 1 => by
+      rw [← (Limits.colimit.isoColimitCocone_ι_inv <|
+              Functor.ofSequence.colimitCoconeUndropFirst i) (m + 1) ]
+      rw [(by rfl : (Functor.ofSequence.colimitCoconeUndropFirst i).cocone.ι.app (m + 1)
+            = Limits.colimit.ι (Functor.ofSequence fun n ↦ i (n + 1)) m )]
+      have := of_colimit_ofSequence (fun n ↦ i (n + 1)) p m  -- recursion
+      infer_instance  -- composition of `Limits.colimit.ι (Functor.ofSequence …) m` with an iso
+
 end HasLiftingProperty.of_colimit_ofSequence
 
 
 instance HasCurriedHEP.of_colimit_ofSequence {X : ℕ → TopCat.{u}} (i : ∀ n, X n ⟶ X (n + 1))
-    {Y : TopCat.{u}} [∀ n, HasCurriedHEP (i n) Y] :
-    HasCurriedHEP (Limits.colimit.ι (Functor.ofSequence i) 0) Y :=
+    {Y : TopCat.{u}} [∀ n, HasCurriedHEP (i n) Y] (n : ℕ) :
+    HasCurriedHEP (Limits.colimit.ι (Functor.ofSequence i) n) Y :=
   ⟨by infer_instance⟩
 
 
@@ -235,8 +333,9 @@ instance IsCofibration.of_sigma_map {J : Type u} {A B : J → TopCat.{u}} (f : (
     [∀ j, IsCofibration (f j)] : IsCofibration (Limits.Sigma.map f) :=
   ⟨by infer_instance⟩
 
-instance IsCofibration.of_colimit_ofSequence {X : ℕ → TopCat.{u}} (i : ∀ n, X n ⟶ X (n + 1))
-    [∀ n, IsCofibration (i n)] : IsCofibration (Limits.colimit.ι (Functor.ofSequence i) 0) :=
+instance IsCofibration.of_colimit_ofSequence
+    {X : ℕ → TopCat.{u}} (i : ∀ n, X n ⟶ X (n + 1)) [∀ n, IsCofibration (i n)]
+    (n : ℕ) : IsCofibration (Limits.colimit.ι (Functor.ofSequence i) n) :=
   ⟨by infer_instance⟩
 
 instance TopCat.diskBoundaryInclusion_isCofibration (n : ℕ) :
@@ -317,14 +416,14 @@ lemma HasLiftingProperty.of_comp_iso {C : Type*} [Category C] {A B B' X Y : C}
     (h : HasLiftingProperty i p) : HasLiftingProperty (i ≫ iso.hom) p :=
   HasLiftingProperty.of_comp_left i iso.hom p
 
-instance skInclusionToNextSk_isCofibration (X : RelCWComplex) (n : ℕ) :
+instance skInclusionToNextSk_isCofibration (X : RelCWComplex.{u}) (n : ℕ) :
     IsCofibration (X.skInclusionToNextSk n) := by
   refine @IsCofibration.of_comp_left _ _ _ _ _ ?_ (by infer_instance) -- iso is cofibration
   apply (X.attachCells n).pushout_isPushout.isCofibration
   infer_instance -- sigma map is cofibration
 
 theorem skInclusion_isCofibration
-    (X : RelCWComplex) : IsCofibration (X.skInclusion 0) := by
+    (X : RelCWComplex.{u}) (n : ℕ) : IsCofibration (X.skInclusion n) := by
   unfold skInclusion
   infer_instance -- inclusion into a sequential colimit is cofibration
                  -- (by `IsCofibration.of_colimit_ofSequence`)
