@@ -1,16 +1,14 @@
 import Lake
 open Lake DSL
 
-package «WhiteheadTheorem» where
-  -- Settings applied to both builds and interactive editing
-  leanOptions := #[
-    ⟨`pp.unicode.fun, true⟩ -- pretty-prints `fun a ↦ b`
-  ]
-  -- add any additional package configuration options here
+package «CHS» where
+  -- add package configuration options here
 
-require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git"
+lean_lib MathlibExtras
+lean_lib «CHS» where
+  -- add library configuration options here
+require mathlib from git "https://github.com/leanprover-community/mathlib4"@"master"
 
 @[default_target]
-lean_lib «WhiteheadTheorem» where
-  -- add any library configuration options here
+lean_exe «chs» where
+  root := `Main
